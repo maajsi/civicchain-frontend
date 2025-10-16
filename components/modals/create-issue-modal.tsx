@@ -64,9 +64,10 @@ export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalP
         headers: { "Content-Type": "multipart/form-data" },
       });
       
-      setAiClassification(response.data.suggested_category);
-      setImageUrl(response.data.image_url);
-      setStep(STEPS.CONFIRM);
+  setAiClassification(response.data.suggested_category);
+  setSelectedCategory(response.data.suggested_category || null);
+  setImageUrl(response.data.image_url);
+  setStep(STEPS.CONFIRM);
     } catch (error) {
       toast.error("AI classification failed. Please select category manually.");
       setStep(STEPS.CONFIRM);
