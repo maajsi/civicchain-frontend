@@ -39,37 +39,49 @@ export default function Home() {
 
         {/* Features Card */}
         <Card className="p-8 sm:p-10 bg-card/80 backdrop-blur-sm border-border shadow-xl animate-fade-in-up animation-delay-200">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 max-w-3xl mx-auto">
             {/* Feature 1: 100% Transparent */}
-            <div className="flex items-center gap-4 group hover:translate-x-1 transition-transform duration-300">
-              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                <ShieldIcon className="w-6 h-6 text-primary" />
+            <div className="flex flex-col items-center text-center gap-3 p-6 rounded-2xl bg-gradient-to-br from-background/50 to-background/30 backdrop-blur-md border border-border/50 group hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-1">
+              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+                <ShieldIcon className="w-7 h-7 text-primary" />
               </div>
-              <span className="text-foreground/80 font-medium">100% Transparent</span>
+              <h3 className="text-foreground font-semibold text-lg">100% Transparent</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Every transaction and report is publicly verifiable on the blockchain for complete accountability.
+              </p>
             </div>
 
             {/* Feature 2: Blockchain Verified */}
-            <div className="flex items-center gap-4 group hover:translate-x-1 transition-transform duration-300">
-              <div className="w-12 h-12 rounded-2xl bg-chart-2/10 flex items-center justify-center flex-shrink-0 group-hover:bg-chart-2/20 transition-colors">
-                <CheckCircleIcon className="w-6 h-6 text-chart-2" />
+            <div className="flex flex-col items-center text-center gap-3 p-6 rounded-2xl bg-gradient-to-br from-background/50 to-background/30 backdrop-blur-md border border-border/50 group hover:border-chart-2/50 hover:shadow-lg hover:shadow-chart-2/10 transition-all duration-300 hover:-translate-y-1">
+              <div className="w-14 h-14 rounded-2xl bg-chart-2/10 flex items-center justify-center flex-shrink-0 group-hover:bg-chart-2/20 group-hover:scale-110 transition-all duration-300">
+                <CheckCircleIcon className="w-7 h-7 text-chart-2" />
               </div>
-              <span className="text-foreground/80 font-medium">Blockchain Verified</span>
+              <h3 className="text-foreground font-semibold text-lg">Blockchain Verified</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                All civic issues are immutably recorded and cryptographically secured for trust and integrity.
+              </p>
             </div>
 
             {/* Feature 3: Instant Reporting */}
-            <div className="flex items-center gap-4 group hover:translate-x-1 transition-transform duration-300">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-500/20 transition-colors">
-                <ZapIcon className="w-6 h-6 text-amber-500" />
+            <div className="flex flex-col items-center text-center gap-3 p-6 rounded-2xl bg-gradient-to-br from-background/50 to-background/30 backdrop-blur-md border border-border/50 group hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 hover:-translate-y-1">
+              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-500/20 group-hover:scale-110 transition-all duration-300">
+                <ZapIcon className="w-7 h-7 text-amber-500" />
               </div>
-              <span className="text-foreground/80 font-medium">Instant Reporting</span>
+              <h3 className="text-foreground font-semibold text-lg">Instant Reporting</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Submit infrastructure issues in real-time and get immediate confirmation on the blockchain.
+              </p>
             </div>
 
             {/* Feature 4: Community Driven */}
-            <div className="flex items-center gap-4 group hover:translate-x-1 transition-transform duration-300">
-              <div className="w-12 h-12 rounded-2xl bg-chart-3/10 flex items-center justify-center flex-shrink-0 group-hover:bg-chart-3/20 transition-colors">
-                <UsersIcon className="w-6 h-6 text-chart-3" />
+            <div className="flex flex-col items-center text-center gap-3 p-6 rounded-2xl bg-gradient-to-br from-background/50 to-background/30 backdrop-blur-md border border-border/50 group hover:border-chart-3/50 hover:shadow-lg hover:shadow-chart-3/10 transition-all duration-300 hover:-translate-y-1">
+              <div className="w-14 h-14 rounded-2xl bg-chart-3/10 flex items-center justify-center flex-shrink-0 group-hover:bg-chart-3/20 group-hover:scale-110 transition-all duration-300">
+                <UsersIcon className="w-7 h-7 text-chart-3" />
               </div>
-              <span className="text-foreground/80 font-medium">Community Driven</span>
+              <h3 className="text-foreground font-semibold text-lg">Community Driven</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Empower citizens to collaborate with local governments for effective civic engagement.
+              </p>
             </div>
           </div>
 
