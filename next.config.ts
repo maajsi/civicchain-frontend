@@ -1,8 +1,15 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   images: {
-    remotePatterns: [new URL("http://152.42.157.189/*")],
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "152.42.157.189",
+        port: "3000",
+        pathname: "/uploads/**",
+      },
+    ],
   },
 };
 

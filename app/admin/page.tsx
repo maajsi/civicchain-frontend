@@ -15,7 +15,8 @@ import {
   Download,
   AlertCircle,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  TrendingUp
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -199,12 +200,12 @@ export default function AdminDashboard() {
 
             {/* ISSUES TAB */}
             {activeTab === "issues" && (
-              <IssuesTab issues={dashboardData?.heatmap_data || []} stats={stats} />
+              <IssuesTab issues={dashboardData?.top_priority_issues || []} stats={stats} />
             )}
 
             {/* ANALYTICS TAB */}
             {activeTab === "analytics" && (
-              <AnalyticsTab stats={stats} categoryBreakdown={dashboardData?.stats?.category_breakdown || []} />
+              <AnalyticsTab stats={stats} categoryBreakdown={stats?.category_breakdown || []} />
             )}
           </div>
         </div>
@@ -215,16 +216,24 @@ export default function AdminDashboard() {
 
 // Issues Tab Component
 import Image from "next/image";
+import Link from "next/link";
 
-type Issue = {
-  id: string;
-  title: string;
-  location: string;
-  status: "open" | "in-progress" | "resolved";
-  priority: number;
-  assignedTeam: string;
-  image: string;
+type TopPriorityIssue = {
+  issue_id: string;
+  reporter_user_id: string;
+  reporter_name: string;
+  reporter_profile_pic: string;
+  image_url: string;
+  description: string;
   category: string;
+  lat: number;
+  lng: number;
+  region: string;
+  status: string;
+  priority_score: number;
+  upvotes: number;
+  downvotes: number;
+  created_at: string;
 };
 
 type Stats = {
@@ -232,74 +241,47 @@ type Stats = {
   in_progress_issues?: number;
   resolved_issues?: number;
   total_issues?: number;
+  closed_issues?: number;
+  total_citizens?: number;
+  avg_priority?: string;
 };
 
-function IssuesTab({ issues, stats }: { issues: Issue[]; stats: Stats }) {
+function IssuesTab({ issues, stats }: { issues: TopPriorityIssue[]; stats: Stats }) {
   const [statusFilter, setStatusFilter] = useState("all");
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://152.42.157.189:3000';
   
-  const mockIssues = [
-    {
-      id: "1",
-      title: "Large pothole on Main Street",
-      location: "Main Street, Sector 5",
-      status: "open",
-      priority: 95,
-      assignedTeam: "Unassigned",
-      image: "/api/placeholder/80/80",
-      category: "pothole"
-    },
-    {
-      id: "2",
-      title: "Garbage overflow at market area",
-      location: "Market Road, Sector 3",
-      status: "in-progress",
-      priority: 88,
-      assignedTeam: "Team B - Sanitation",
-      image: "/api/placeholder/80/80",
-      category: "garbage"
-    },
-    {
-      id: "3",
-      title: "Water pipeline leak causing flooding",
-      location: "Highway Junction, Sector 2",
-      status: "in-progress",
-      priority: 92,
-      assignedTeam: "Team C - Water",
-      image: "/api/placeholder/80/80",
-      category: "water"
-    },
-    {
-      id: "4",
-      title: "Streetlights not working for a week",
-      location: "Park Avenue, Sector 7",
-      status: "resolved",
-      priority: 79,
-      assignedTeam: "Team D - Electrical",
-      image: "/api/placeholder/80/80",
-      category: "streetlight"
-    },
-    {
-      id: "5",
-      title: "Broken drainage cover dangerous",
-      location: "Lake Road, Sector 6",
-      status: "open",
-      priority: 86,
-      assignedTeam: "Unassigned",
-      image: "/api/placeholder/80/80",
-      category: "drainage"
-    }
-  ];
+  const getImageUrl = (url: string) => {
+    if (!url) return '/placeholder-issue.png';
+    if (url.startsWith('http')) return url;
+    return `${API_BASE_URL}${url}`;
+  };
+
+  // Map API issues to display format
+  const apiIssues = issues.map(issue => ({
+    id: issue.issue_id,
+    title: issue.description.substring(0, 60) + (issue.description.length > 60 ? '...' : ''),
+    location: issue.region || `${issue.lat.toFixed(4)}, ${issue.lng.toFixed(4)}`,
+    status: issue.status.toLowerCase().replace('_', '-') as "open" | "in-progress" | "resolved",
+    priority: Math.round(issue.priority_score),
+    assignedTeam: "Unassigned", // Not provided by API
+    image: getImageUrl(issue.image_url),
+    category: issue.category,
+    fullDescription: issue.description,
+    upvotes: issue.upvotes,
+    downvotes: issue.downvotes,
+    reporter: issue.reporter_name,
+  }));
 
   const filteredIssues = statusFilter === "all" 
-    ? mockIssues.filter(issue => issue.status !== "resolved") // Exclude resolved issues
-    : mockIssues.filter(issue => issue.status === statusFilter && issue.status !== "resolved");
+    ? apiIssues.filter(issue => issue.status !== "resolved") 
+    : apiIssues.filter(issue => issue.status === statusFilter && issue.status !== "resolved");
 
-  // Compute display stats: prefer server-provided stats, fallback to counts from mockIssues
+  // Use real stats from API
   const displayStats = {
-    open_issues: stats?.open_issues ?? mockIssues.filter(i => i.status === "open").length,
-    in_progress_issues: stats?.in_progress_issues ?? mockIssues.filter(i => i.status === "in-progress").length,
-    resolved_issues: stats?.resolved_issues ?? mockIssues.filter(i => i.status === "resolved").length,
-    total_issues: stats?.total_issues ?? mockIssues.length,
+    open_issues: stats?.open_issues ?? 0,
+    in_progress_issues: stats?.in_progress_issues ?? 0,
+    resolved_issues: stats?.resolved_issues ?? 0,
+    total_issues: stats?.total_issues ?? 0,
   };
 
   return (
@@ -391,93 +373,110 @@ function IssuesTab({ issues, stats }: { issues: Issue[]; stats: Stats }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredIssues.map((issue, index) => (
-                <tr 
-                  key={issue.id} 
-                  className="hover:bg-muted/30 transition-colors duration-200 animate-fade-in-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      <Image 
-                        src={issue.image} 
-                        alt={issue.title}
-                        width={64}
-                        height={64}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                      <div>
-                        <p className="font-semibold text-foreground">{issue.title}</p>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                          </svg>
-                          {issue.location}
-                        </p>
-                      </div>
+              {filteredIssues.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <AlertCircle className="w-12 h-12 text-muted-foreground/50" />
+                      <p className="text-lg font-semibold text-muted-foreground">No issues found</p>
+                      <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
-                      issue.status === "open" 
-                        ? "bg-red-500/10 text-red-600" 
-                        : issue.status === "in-progress"
-                        ? "bg-blue-500/10 text-blue-600"
-                        : "bg-green-500/10 text-green-600"
-                    }`}>
-                      {issue.status === "open" && <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />}
-                      {issue.status === "in-progress" && <Clock className="w-3.5 h-3.5 flex-shrink-0" />}
-                      {issue.status === "resolved" && <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />}
-                      <span className="leading-none">{issue.status.replace("-", " ")}</span>
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
-                        issue.priority >= 90 ? "bg-red-500 text-white" :
-                        issue.priority >= 80 ? "bg-orange-500 text-white" :
-                        "bg-yellow-500 text-white"
-                      }`}>
-                        {issue.priority}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-sm text-muted-foreground italic">
-                      {issue.assignedTeam}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button className="flex items-center gap-2 px-4 py-2 text-sm text-primary hover:bg-primary/10 rounded-lg transition-colors">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      View
-                    </button>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredIssues.map((issue, index) => (
+                  <tr 
+                    key={issue.id} 
+                    className="hover:bg-muted/30 transition-colors duration-200 animate-fade-in-up"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-4">
+                        <Image 
+                          src={issue.image} 
+                          alt={issue.title}
+                          width={64}
+                          height={64}
+                          className="w-16 h-16 rounded-lg object-cover"
+                        />
+                        <div className="max-w-md">
+                          <p className="font-semibold text-foreground line-clamp-1">{issue.title}</p>
+                          <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                            {issue.location}
+                          </p>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <TrendingUp className="w-3 h-3 text-green-500" />
+                              {issue.upvotes}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <svg className="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                              </svg>
+                              {issue.downvotes}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${
+                        issue.status === "open" 
+                          ? "bg-red-500/10 text-red-600" 
+                          : issue.status === "in-progress"
+                          ? "bg-blue-500/10 text-blue-600"
+                          : "bg-green-500/10 text-green-600"
+                      }`}>
+                        {issue.status === "open" && <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />}
+                        {issue.status === "in-progress" && <Clock className="w-3.5 h-3.5 flex-shrink-0" />}
+                        {issue.status === "resolved" && <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />}
+                        <span className="leading-none capitalize">{issue.status.replace("-", " ")}</span>
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
+                          issue.priority >= 90 ? "bg-red-500 text-white" :
+                          issue.priority >= 80 ? "bg-orange-500 text-white" :
+                          "bg-yellow-500 text-white"
+                        }`}>
+                          {issue.priority}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-muted-foreground">
+                        Reported by <span className="font-medium text-foreground">{issue.reporter}</span>
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link href={`/issue/${issue.id}`}>
+                        <button className="flex items-center gap-2 px-4 py-2 text-sm text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          View
+                        </button>
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
         <div className="px-6 py-4 border-t bg-muted/20">
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Showing {filteredIssues.length} of {mockIssues.length} issues
+              Showing {filteredIssues.length} of {apiIssues.length} top priority issues
             </p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </Button>
-              <Button variant="outline" size="sm">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Button>
-            </div>
+            <p className="text-xs text-muted-foreground">
+              Total issues in system: {displayStats.total_issues}
+            </p>
           </div>
         </div>
       </Card>
@@ -487,25 +486,31 @@ function IssuesTab({ issues, stats }: { issues: Issue[]; stats: Stats }) {
 
 // Analytics Tab Component
 type CategoryBreakdown = {
-  name: string;
+  category: string;
   count: number;
-  percentage: number;
-  color: string;
-  textColor: string;
 };
 
 function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBreakdown: CategoryBreakdown[] }) {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  
+  // Calculate resolution rate
+  const totalIssues = stats.total_issues || 0;
+  const resolvedIssues = stats.resolved_issues || 0;
+  const resolutionRate = totalIssues > 0 ? Math.round((resolvedIssues / totalIssues) * 100) : 0;
+  
+  // Calculate percentages for radial charts
+  const openPercentage = totalIssues > 0 ? Math.round(((stats.open_issues || 0) / totalIssues) * 100) : 0;
+  const inProgressPercentage = totalIssues > 0 ? Math.round(((stats.in_progress_issues || 0) / totalIssues) * 100) : 0;
   
   return (
     <div className="space-y-8">
       {/* Top Stats Grid with Claymorphism */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Total Issues", value: stats.total_issues || 1250, change: "+12%", trend: "up", icon: BarChart3, color: "blue", gradient: "from-blue-500 to-blue-600" },
-          { label: "Resolution Rate", value: "87%", change: "+8%", trend: "up", icon: CheckCircle2, color: "green", gradient: "from-green-500 to-emerald-600" },
-          { label: "Avg Response Time", value: "3.2d", change: "-3%", trend: "down", icon: Clock, color: "purple", gradient: "from-purple-500 to-violet-600" },
-          { label: "Citizen Satisfaction", value: "4.3/5", change: "+5%", trend: "up", icon: AlertCircle, color: "orange", gradient: "from-orange-500 to-amber-600" }
+          { label: "Total Issues", value: stats.total_issues || 0, valueType: "number", icon: BarChart3, color: "blue", gradient: "from-blue-500 to-blue-600" },
+          { label: "Total Citizens", value: stats.total_citizens || 0, valueType: "number", icon: CheckCircle2, color: "green", gradient: "from-green-500 to-emerald-600" },
+          { label: "Avg Priority", value: stats.avg_priority ? parseFloat(stats.avg_priority).toFixed(1) : "0", valueType: "string", icon: Clock, color: "purple", gradient: "from-purple-500 to-violet-600" },
+          { label: "Resolution Rate", value: `${resolutionRate}%`, valueType: "string", icon: AlertCircle, color: "orange", gradient: "from-orange-500 to-amber-600" }
         ].map((stat, index) => (
           <div
             key={stat.label}
@@ -524,19 +529,11 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
                 <div className={`p-3 rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg transform transition-transform duration-300 ${hoveredCard === stat.label ? "scale-110 rotate-3" : ""}`}>
                   <stat.icon className="w-6 h-6 text-white" />
                 </div>
-                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                  stat.trend === "up" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"
-                }`}>
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d={stat.trend === "up" ? "M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" : "M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"} clipRule="evenodd" />
-                  </svg>
-                  {stat.change}
-                </div>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-2 font-medium">{stat.label}</p>
                 <p className="text-4xl font-bold text-foreground mb-1 transition-all duration-300">{stat.value}</p>
-                <p className="text-xs text-muted-foreground">vs last month</p>
+                <p className="text-xs text-muted-foreground">Real-time data</p>
               </div>
             </div>
             
@@ -551,10 +548,10 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
       {/* Radial Progress Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: "Open Issues", value: 32, total: 100, color: "text-red-500", strokeColor: "#ef4444", strokeColorEnd: "#f43f5e" },
-          { label: "In Progress", value: 48, total: 100, color: "text-blue-500", strokeColor: "#3b82f6", strokeColorEnd: "#4f46e5" },
-          { label: "Priority High", value: 24, total: 100, color: "text-orange-500", strokeColor: "#f97316", strokeColorEnd: "#f59e0b" },
-          { label: "Citizen Engagement", value: 76, total: 100, color: "text-green-500", strokeColor: "#10b981", strokeColorEnd: "#059669" }
+          { label: "Open Issues", value: openPercentage, total: 100, color: "text-red-500", strokeColor: "#ef4444", strokeColorEnd: "#f43f5e", count: stats.open_issues || 0 },
+          { label: "In Progress", value: inProgressPercentage, total: 100, color: "text-blue-500", strokeColor: "#3b82f6", strokeColorEnd: "#4f46e5", count: stats.in_progress_issues || 0 },
+          { label: "Resolved", value: resolutionRate, total: 100, color: "text-green-500", strokeColor: "#10b981", strokeColorEnd: "#059669", count: stats.resolved_issues || 0 },
+          { label: "Closed", value: totalIssues > 0 ? Math.round(((stats.closed_issues || 0) / totalIssues) * 100) : 0, total: 100, color: "text-gray-500", strokeColor: "#6b7280", strokeColorEnd: "#4b5563", count: stats.closed_issues || 0 }
         ].map((item, index) => (
           <div
             key={item.label}
@@ -599,7 +596,7 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
                 </div>
               </div>
               <p className="text-sm font-semibold text-foreground text-center">{item.label}</p>
-              <p className="text-xs text-muted-foreground mt-1">Current status</p>
+              <p className="text-xs text-muted-foreground mt-1">{item.count} issues</p>
             </div>
           </div>
         ))}
@@ -618,40 +615,54 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
               </div>
               Issues by Category
             </h3>
-            <button className="text-sm text-primary hover:underline font-medium">View All</button>
           </div>
           <div className="space-y-5">
-            {[
-              { name: "Potholes", count: 342, percentage: 32, color: "bg-orange-500", textColor: "text-orange-500" },
-              { name: "Garbage", count: 289, percentage: 27, color: "bg-green-500", textColor: "text-green-500" },
-              { name: "Streetlights", count: 187, percentage: 17, color: "bg-yellow-500", textColor: "text-yellow-500" },
-              { name: "Water", count: 156, percentage: 15, color: "bg-blue-500", textColor: "text-blue-500" },
-              { name: "Other", count: 98, percentage: 9, color: "bg-gray-500", textColor: "text-gray-500" }
-            ].map((category, index) => (
-              <div key={category.name} className="space-y-3 group animate-fade-in-up hover:scale-[1.02] transition-transform duration-300" style={{ animationDelay: `${index * 100}ms` }}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-full ${category.color} animate-pulse`}></div>
-                    <span className="text-sm font-semibold text-foreground">{category.name}</span>
+            {(() => {
+              const categoryColors: Record<string, { bg: string; text: string }> = {
+                pothole: { bg: "bg-orange-500", text: "text-orange-500" },
+                garbage: { bg: "bg-green-500", text: "text-green-500" },
+                streetlight: { bg: "bg-yellow-500", text: "text-yellow-500" },
+                water: { bg: "bg-blue-500", text: "text-blue-500" },
+                drainage: { bg: "bg-cyan-500", text: "text-cyan-500" },
+                other: { bg: "bg-gray-500", text: "text-gray-500" }
+              };
+              
+              const totalCategoryCount = categoryBreakdown.reduce((sum, cat) => sum + cat.count, 0);
+              
+              return categoryBreakdown.length > 0 ? categoryBreakdown.map((category, index) => {
+                const percentage = totalCategoryCount > 0 ? Math.round((category.count / totalCategoryCount) * 100) : 0;
+                const colors = categoryColors[category.category.toLowerCase()] || categoryColors.other;
+                
+                return (
+                  <div key={category.category} className="space-y-3 group animate-fade-in-up hover:scale-[1.02] transition-transform duration-300" style={{ animationDelay: `${index * 100}ms` }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-4 h-4 rounded-full ${colors.bg} animate-pulse`}></div>
+                        <span className="text-sm font-semibold text-foreground capitalize">{category.category}</span>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <span className="text-sm text-muted-foreground font-medium">{category.count} issues</span>
+                        <span className={`text-base font-bold ${colors.text} w-14 text-right`}>{percentage}%</span>
+                      </div>
+                    </div>
+                    <div className="relative w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
+                      <div 
+                        className={`absolute h-full ${colors.bg} rounded-full transition-all duration-1000 ease-out shadow-lg`}
+                        style={{ 
+                          width: `${percentage}%`,
+                        }}
+                      >
+                        <div className="absolute inset-0 animate-shimmer"></div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <span className="text-sm text-muted-foreground font-medium">{category.count} issues</span>
-                    <span className={`text-base font-bold ${category.textColor} w-14 text-right`}>{category.percentage}%</span>
-                  </div>
+                );
+              }) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No category data available</p>
                 </div>
-                <div className="relative w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
-                  <div 
-                    className={`absolute h-full ${category.color} rounded-full transition-all duration-1000 ease-out shadow-lg`}
-                    style={{ 
-                      width: `${category.percentage}%`,
-                      boxShadow: `0 0 10px ${category.color}`
-                    }}
-                  >
-                    <div className="absolute inset-0 animate-shimmer"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })()}
           </div>
         </div>
 

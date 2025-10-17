@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Settings } from "lucide-react";
+import { User, LogOut } from "lucide-react";
 
 export function UserMenu() {
   const { data: session } = useSession();
@@ -44,10 +44,6 @@ export function UserMenu() {
         <DropdownMenuItem onClick={() => router.push(userId ? `/profile/${userId}` : "/profile") }>
           <User className="h-4 w-4 mr-2" />
           Profile & Reputation
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Settings className="h-4 w-4 mr-2" />
-          Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })} className="text-red-600 focus:text-red-600">

@@ -8,7 +8,7 @@ const clientApi = axios.create({
   },
 });
 
-// Add request interceptor to include JWT token from localStorage
+// Add request interceptor to include JWT token and user_id from localStorage
 clientApi.interceptors.request.use(
   (config) => {
     // Get JWT token from localStorage
@@ -16,6 +16,13 @@ clientApi.interceptors.request.use(
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Get user_id from localStorage
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('civicchain_user_id') : null;
+    
+    if (userId) {
+      config.headers['X-User-Id'] = userId;
     }
     
     return config;
