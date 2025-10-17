@@ -30,13 +30,25 @@ export async function POST(
     );
 
     return NextResponse.json(response.data);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    let message = "Failed to verify issue";
+    let status = 500;
+    if (typeof error === "object" && error !== null) {
+      // Try to extract axios error response
+      const err = error as any;
+      if (err.response?.data?.error) {
+        message = err.response.data.error;
+      }
+      if (err.response?.status) {
+        status = err.response.status;
+      }
+    }
     console.error("Error verifying issue:", error);
     return NextResponse.json(
       {
-        error: error.response?.data?.error || "Failed to verify issue",
+        error: message,
       },
-      { status: error.response?.status || 500 }
+      { status }
     );
   }
 }

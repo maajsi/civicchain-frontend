@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken'
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://152.42.157.189:3000'
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET
 
-export async function POST(request: NextRequest) {
+export async function POST(_: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -64,11 +64,15 @@ export async function POST(request: NextRequest) {
       ...data,
       jwt_token: jwt_token
     })
-  } catch (error: any) {
-    console.error('Auth login error:', error)
+  } catch (error: unknown) {
+    let message = 'Internal server error';
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      message = (error as { message?: string }).message || message;
+    }
+    console.error('Auth login error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: message },
       { status: 500 }
-    )
+    );
   }
 }

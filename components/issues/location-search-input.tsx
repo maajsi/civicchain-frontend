@@ -33,7 +33,7 @@ export function LocationSearchInput({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, searchLocation]);
 
   // Close suggestions when clicking outside
   useEffect(() => {

@@ -8,10 +8,8 @@ import clientApi from "@/lib/client-api";
 import { getUserRole } from "@/lib/auth";
 import { toast } from "sonner";
 import { 
-  LayoutDashboard, 
   FileText, 
   BarChart3, 
-  Settings,
   Bell,
   ChevronDown,
   Download,
@@ -21,14 +19,14 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+// import { Skeleton } from "@/components/ui/skeleton";
 import { UserMenu } from "@/components/header/user-menu";
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("issues");
-  const [timeFilter, setTimeFilter] = useState("This Week");
+  const [timeFilter] = useState("This Week");
 
 
   // Check if user is authorized
@@ -216,7 +214,27 @@ export default function AdminDashboard() {
 }
 
 // Issues Tab Component
-function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
+import Image from "next/image";
+
+type Issue = {
+  id: string;
+  title: string;
+  location: string;
+  status: "open" | "in-progress" | "resolved";
+  priority: number;
+  assignedTeam: string;
+  image: string;
+  category: string;
+};
+
+type Stats = {
+  open_issues?: number;
+  in_progress_issues?: number;
+  resolved_issues?: number;
+  total_issues?: number;
+};
+
+function IssuesTab({ issues, stats }: { issues: Issue[]; stats: Stats }) {
   const [statusFilter, setStatusFilter] = useState("all");
   
   const mockIssues = [
@@ -381,9 +399,11 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
-                      <img 
+                      <Image 
                         src={issue.image} 
                         alt={issue.title}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
                       <div>
@@ -466,7 +486,15 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
 }
 
 // Analytics Tab Component
-function AnalyticsTab({ stats, categoryBreakdown }: { stats: any; categoryBreakdown: any[] }) {
+type CategoryBreakdown = {
+  name: string;
+  count: number;
+  percentage: number;
+  color: string;
+  textColor: string;
+};
+
+function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBreakdown: CategoryBreakdown[] }) {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   
   return (

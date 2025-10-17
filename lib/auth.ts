@@ -1,8 +1,4 @@
-import { getSession } from 'next-auth/react'
 import axios from 'axios'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://152.42.157.189:3000'
-
 export async function authenticateWithBackend() {
   try {
     // Call our Next.js API route which will generate and send the JWT

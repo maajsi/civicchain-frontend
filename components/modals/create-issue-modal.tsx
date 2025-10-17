@@ -2,7 +2,6 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -46,7 +45,7 @@ const CATEGORIES = [
 
 export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalProps) {
   const [step, setStep] = useState(STEPS.UPLOAD);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  // Removed unused imageFile
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [aiClassification, setAiClassification] = useState<string | null>(null);
@@ -57,10 +56,8 @@ export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalP
   const { coordinates } = useGeolocation();
 
   const handleImageUpload = async (file: File) => {
-    setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
     setStep(STEPS.CLASSIFY);
-    
     // Call AI classification
     const formData = new FormData();
     formData.append("image", file);
@@ -69,11 +66,10 @@ export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalP
       const response = await clientApi.post("/issues/classify", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      
-  setAiClassification(response.data.suggested_category);
-  setSelectedCategory(response.data.suggested_category || null);
-  setImageUrl(response.data.image_url);
-  setStep(STEPS.CONFIRM);
+      setAiClassification(response.data.suggested_category);
+      setSelectedCategory(response.data.suggested_category || null);
+      setImageUrl(response.data.image_url);
+      setStep(STEPS.CONFIRM);
     } catch (error) {
       toast.error("AI classification failed. Please select category manually.");
       setStep(STEPS.CONFIRM);
@@ -104,7 +100,6 @@ export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalP
 
   const resetForm = () => {
     setStep(STEPS.UPLOAD);
-    setImageFile(null);
     setImagePreview(null);
     setImageUrl(null);
     setAiClassification(null);
@@ -353,7 +348,7 @@ function LocationStep({
   const [coords, setCoords] = useState(
     currentLocation || { lat: 17.385044, lng: 78.486671 }
   );
-  const [address, setAddress] = useState("Selected location on map");
+  const [address] = useState("Selected location on map");
 
   const handleLocationChange = (newCoords: { lat: number; lng: number }) => {
     setCoords(newCoords);

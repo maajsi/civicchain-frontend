@@ -13,6 +13,7 @@ import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 import { getUserRole } from "@/lib/auth";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function IssueDetailsPage() {
@@ -93,8 +94,12 @@ export default function IssueDetailsPage() {
         : "Issue verified successfully!";
       toast.success(message);
     },
-    onError: (error: any) => {
-      const errorMsg = error.response?.data?.error || error.message || "Failed to verify issue";
+    onError: (error: unknown) => {
+      let errorMsg = "Failed to verify issue";
+      if (typeof error === "object" && error !== null) {
+        const err = error as any;
+        errorMsg = err.response?.data?.error || err.message || errorMsg;
+      }
       toast.error(errorMsg);
     },
   });
@@ -189,10 +194,13 @@ export default function IssueDetailsPage() {
             {/* Issue Image */}
             {issue.image_url && (
               <div className="relative h-96 w-full bg-muted">
-                <img
+                <Image
                   src={getImageUrl(issue.image_url)}
                   alt="Issue"
-                  className="w-full h-full object-cover"
+                  fill
+                  style={{ objectFit: "cover" }}
+                  sizes="100vw"
+                  priority
                 />
               </div>
             )}

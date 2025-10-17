@@ -5,7 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, CheckCircle, Star, TrendingUp, Calendar, Eye } from "lucide-react";
+import { Trophy, CheckCircle, Star} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import clientApi from "@/lib/client-api";
 

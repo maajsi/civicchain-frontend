@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { getUserId } from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import clientApi from "@/lib/client-api";
 import { Card } from "@/components/ui/card";
@@ -16,15 +16,26 @@ import {
   Trophy,
   CheckCircle2,
   Users,
-  Star,
-  Calendar,
-  Eye,
   MapPin,
   TrendingUp,
   Shield,
   Award,
 } from "lucide-react";
-import { useParams } from "next/navigation";
+
+// Type definitions for user and badge
+type UserProfile = {
+  user_id: string;
+  name: string;
+  profile_pic: string;
+  rep: number;
+  created_at: string;
+  issues_reported: number;
+  issues_resolved: number;
+  total_upvotes: number;
+  verifications_done: number;
+  badges: string[];
+};
+
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
@@ -53,8 +64,8 @@ export default function ProfilePage() {
       description: "Reported your first issue",
       color: "text-blue-500",
       bgColor: "bg-blue-500/10",
-      check: (user: any) => user.issues_reported >= 1,
-      progress: (user: any) => Math.min((user.issues_reported / 1) * 100, 100),
+      check: (user: UserProfile) => user.issues_reported >= 1,
+      progress: (user: UserProfile) => Math.min((user.issues_reported / 1) * 100, 100),
     },
     {
       id: "top_reporter",
@@ -63,8 +74,8 @@ export default function ProfilePage() {
       description: "Reported 10+ issues",
       color: "text-yellow-500",
       bgColor: "bg-yellow-500/10",
-      check: (user: any) => user.issues_reported >= 10,
-      progress: (user: any) => Math.min((user.issues_reported / 10) * 100, 100),
+      check: (user: UserProfile) => user.issues_reported >= 10,
+      progress: (user: UserProfile) => Math.min((user.issues_reported / 10) * 100, 100),
     },
     {
       id: "civic_hero",
@@ -73,8 +84,8 @@ export default function ProfilePage() {
       description: "Reported 50+ issues",
       color: "text-green-500",
       bgColor: "bg-green-500/10",
-      check: (user: any) => user.issues_reported >= 50,
-      progress: (user: any) => Math.min((user.issues_reported / 50) * 100, 100),
+      check: (user: UserProfile) => user.issues_reported >= 50,
+      progress: (user: UserProfile) => Math.min((user.issues_reported / 50) * 100, 100),
     },
     {
       id: "verifier",
@@ -83,8 +94,8 @@ export default function ProfilePage() {
       description: "Verified 10 resolved issues",
       color: "text-purple-500",
       bgColor: "bg-purple-500/10",
-      check: (user: any) => user.verifications_done >= 10,
-      progress: (user: any) => Math.min((user.verifications_done / 10) * 100, 100),
+      check: (user: UserProfile) => user.verifications_done >= 10,
+      progress: (user: UserProfile) => Math.min((user.verifications_done / 10) * 100, 100),
     },
     {
       id: "trusted_voice",
@@ -93,8 +104,8 @@ export default function ProfilePage() {
       description: "Earned 200+ Rep",
       color: "text-orange-500",
       bgColor: "bg-orange-500/10",
-      check: (user: any) => user.rep >= 200,
-      progress: (user: any) => Math.min((user.rep / 200) * 100, 100),
+      check: (user: UserProfile) => user.rep >= 200,
+      progress: (user: UserProfile) => Math.min((user.rep / 200) * 100, 100),
     },
   ];
 

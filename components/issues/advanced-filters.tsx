@@ -9,7 +9,6 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetFooter,
 } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";

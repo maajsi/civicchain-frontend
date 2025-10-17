@@ -21,10 +21,14 @@ export async function GET(
     const data = await response.json();
 
     return NextResponse.json(data, { status: response.status });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    let message = "Failed to fetch issue";
+    if (typeof error === "object" && error !== null && "message" in error) {
+      message = (error as { message?: string }).message || message;
+    }
     console.error("Error fetching issue:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch issue" },
+      { error: message },
       { status: 500 }
     );
   }

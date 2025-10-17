@@ -36,12 +36,12 @@ export default function UsersPage() {
   );
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   // const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [radius, setRadius] = useState<number>(5000);
-  const [isAuthenticating, setIsAuthenticating] = useState(true);
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(true);
   
   // Location search state
   const [searchLocation, setSearchLocation] = useState<{
@@ -113,7 +113,7 @@ export default function UsersPage() {
     return () => {
       isMounted = false;
     };
-  }, [status, session?.user?.email, router]); // Only re-run if status or user email changes
+  }, [status, session?.user?.email, router, setIsAuthenticating]); // Only re-run if status or user email changes
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -140,7 +140,7 @@ export default function UsersPage() {
     queryFn: async () => {
       const activeCoords = searchLocation || coordinates;
       if (!activeCoords) return null;
-      const params: Record<string, any> = {
+      const params: Record<string, string | number> = {
         lat: activeCoords.lat,
         lng: activeCoords.lng,
         radius: radius,
@@ -415,34 +415,47 @@ export default function UsersPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {issues
-                .filter((issue: any) =>
+                .filter((issue: { description: string; region?: string }) =>
                   searchQuery
                     ? issue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       issue.region?.toLowerCase().includes(searchQuery.toLowerCase())
                     : true
                 )
-                .map((issue: any, index: number) => (
-                  <div
-                    key={issue.issue_id}
-                    className="animate-fade-in-up"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <IssueCard
-                      issue={{ 
-                        ...issue, 
-                        image_url: getImageUrl(issue.image_url),
-                        latitude: issue.lat,
-                        longitude: issue.lng
-                      }}
-                      onUpvote={handleUpvote}
-                      onDownvote={handleDownvote}
-                      onShare={handleShare}
-                      onClick={handleIssueClick}
-                      isUpvoting={upvoteMutation.status === 'pending'}
-                      isDownvoting={downvoteMutation.status === 'pending'}
-                    />
-                  </div>
-                ))}
+                .map((issue: any, index: number) => {
+                  // Map to full IssueCard type
+                  const mappedIssue = {
+                    issue_id: issue.issue_id,
+                    image_url: getImageUrl(issue.image_url),
+                    description: issue.description,
+                    category: issue.category ?? "other",
+                    status: issue.status ?? "open",
+                    priority_score: issue.priority_score ?? 0,
+                    upvotes: issue.upvotes ?? 0,
+                    downvotes: issue.downvotes ?? 0,
+                    verification_count: issue.verification_count ?? 0,
+                    latitude: issue.lat,
+                    longitude: issue.lng,
+                    region: issue.region ?? "",
+                    created_at: issue.created_at ?? new Date().toISOString(),
+                  };
+                  return (
+                    <div
+                      key={mappedIssue.issue_id}
+                      className="animate-fade-in-up"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <IssueCard
+                        issue={mappedIssue}
+                        onUpvote={handleUpvote}
+                        onDownvote={handleDownvote}
+                        onShare={handleShare}
+                        onClick={handleIssueClick}
+                        isUpvoting={upvoteMutation.status === 'pending'}
+                        isDownvoting={downvoteMutation.status === 'pending'}
+                      />
+                    </div>
+                  );
+                })}
             </div>
           )}
         </div>

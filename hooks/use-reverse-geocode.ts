@@ -80,9 +80,13 @@ export function useReverseGeocode(lat?: number, lng?: number): ReverseGeocodeRes
         // Cache the result
         geocodeCache.set(cacheKey, finalAddress);
         setAddress(finalAddress);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        let message = "Unknown error";
+        if (typeof err === "object" && err !== null && "message" in err) {
+          message = (err as { message?: string }).message || message;
+        }
         console.error("Reverse geocoding error:", err);
-        setError(err.message);
+        setError(message);
         setAddress("Unknown location");
       } finally {
         setLoading(false);

@@ -1,4 +1,5 @@
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Card, CardFooter, CardHeader } from "@/components/ui/card";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, TrendingDown, MapPin, Share2, Clock } from "lucide-react";
@@ -84,12 +85,18 @@ export function IssueCard({
     >
       {/* Image Section */}
       <div className="relative h-56 w-full overflow-hidden bg-muted">
-        <img
+        <Image
           src={issue.image_url}
           alt={issue.description}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          fill
+          style={{ objectFit: "cover" }}
+          sizes="100vw"
+          priority
           onError={(e) => {
-            (e.target as HTMLImageElement).src = "/placeholder-issue.png";
+            // fallback for broken images
+            if (e && "target" in e && (e.target as HTMLImageElement).src !== "/placeholder-issue.png") {
+              (e.target as HTMLImageElement).src = "/placeholder-issue.png";
+            }
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
