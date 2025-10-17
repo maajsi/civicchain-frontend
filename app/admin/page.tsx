@@ -869,7 +869,7 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
                   cursor={false}
                   content={<ChartTooltipContent indicator="line" />}
                 />
-                <PolarGrid className="fill-[--color-pothole] opacity-20" />
+                <PolarGrid className="stroke-border opacity-20" />
                 <PolarAngleAxis 
                   dataKey="category"
                   tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
