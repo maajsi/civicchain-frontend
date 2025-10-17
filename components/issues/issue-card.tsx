@@ -66,7 +66,7 @@ export function IssueCard({
 
   return (
     <Card
-      className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-primary/50 group bg-card/50 backdrop-blur-sm hover:-translate-y-1"
+      className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer border hover:border-primary/50 bg-card hover:-translate-y-1"
       onClick={() => onClick(issue.issue_id)}
     >
       {/* Image Section */}
@@ -82,32 +82,32 @@ export function IssueCard({
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
           <Badge
-            className={`${categoryColors[issue.category]} font-semibold capitalize shadow-sm`}
+            className={`${categoryColors[issue.category]} font-medium capitalize shadow-sm`}
           >
             {issue.category}
           </Badge>
           <Badge
-            className={`${statusColors[issue.status]} font-semibold capitalize shadow-sm`}
+            className={`${statusColors[issue.status]} font-medium capitalize shadow-sm`}
           >
             {issue.status.replace("_", " ")}
           </Badge>
         </div>
 
         {/* Priority Score Badge */}
-        <div className="absolute top-3 right-3 bg-gradient-to-br from-primary to-chart-2 text-white px-3 py-1.5 rounded-full font-bold text-sm shadow-lg">
+        <div className="absolute top-3 right-3 bg-gradient-to-br from-primary to-chart-2 text-primary-foreground px-3 py-1.5 rounded-full font-bold text-sm shadow-lg">
           ⚡ {Math.round(issue.priority_score)}
         </div>
       </div>
 
       {/* Content Section */}
-      <CardHeader className="pb-3">
-        <h3 className="text-lg font-semibold line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+      <CardHeader className="pb-3 pt-4">
+        <h3 className="text-base sm:text-lg font-semibold line-clamp-2 leading-tight group-hover:text-primary transition-colors">
           {issue.description}
         </h3>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-          <MapPin className="h-4 w-4 flex-shrink-0" />
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mt-2">
+          <MapPin className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
           <span className="line-clamp-1">
             {issue.region || "Unknown location"}
           </span>
@@ -121,29 +121,29 @@ export function IssueCard({
       </CardHeader>
 
       {/* Footer - Actions */}
-      <CardFooter className="flex gap-2 pt-0 pb-4">
+      <CardFooter className="flex gap-2 pt-0 pb-4 px-4 sm:px-6">
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 font-semibold hover:bg-green-50 hover:text-green-700 hover:border-green-300 dark:hover:bg-green-500/10 dark:hover:text-green-400 dark:hover:border-green-500/30 transition-colors"
+          className="flex-1 font-medium hover:bg-green-50 hover:text-green-700 hover:border-green-300 dark:hover:bg-green-500/10 dark:hover:text-green-400 dark:hover:border-green-500/30 transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             onUpvote(issue.issue_id);
           }}
         >
-          <TrendingUp className="h-4 w-4 mr-1" />
+          <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
           {issue.upvotes}
         </Button>
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 font-semibold hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/30 transition-colors"
+          className="flex-1 font-medium hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:hover:bg-red-500/10 dark:hover:text-red-400 dark:hover:border-red-500/30 transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             onDownvote(issue.issue_id);
           }}
         >
-          <TrendingDown className="h-4 w-4 mr-1" />
+          <TrendingDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
           {issue.downvotes}
         </Button>
         <Button
@@ -155,12 +155,12 @@ export function IssueCard({
             onShare(issue.issue_id);
           }}
         >
-          <Share2 className="h-4 w-4" />
+          <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
       </CardFooter>
 
       {/* Time Footer */}
-      <div className="px-6 pb-4 pt-0">
+      <div className="px-4 sm:px-6 pb-4 pt-0">
         <div className="flex items-center gap-1 text-xs text-muted-foreground border-t pt-3">
           <Clock className="h-3 w-3" />
           <span>{getTimeAgo(issue.created_at)}</span>

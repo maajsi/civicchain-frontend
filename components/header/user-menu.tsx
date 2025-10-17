@@ -24,10 +24,10 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all hover:ring-2 hover:ring-primary/50">
-          <Avatar className="h-10 w-10 border-2 border-transparent hover:border-primary transition-colors">
+        <button className="rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all">
+          <Avatar className="h-9 w-9 sm:h-10 sm:w-10 border-2 border-border hover:border-primary transition-colors">
             <AvatarImage src={session.user.image || ""} />
-            <AvatarFallback className="bg-gradient-to-br from-primary to-chart-2 text-white font-semibold">
+            <AvatarFallback className="bg-gradient-to-br from-primary to-chart-2 text-primary-foreground font-semibold">
               {session.user.name?.[0]?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
@@ -35,22 +35,22 @@ export function UserMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
-          <div>
-            <p className="font-semibold">{session.user.name}</p>
+          <div className="space-y-1">
+            <p className="font-semibold leading-none">{session.user.name}</p>
             <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push(userId ? `/profile/${userId}` : "/profile") }>
+        <DropdownMenuItem onClick={() => router.push(userId ? `/profile/${userId}` : "/profile") } className="cursor-pointer">
           <User className="h-4 w-4 mr-2" />
           Profile & Reputation
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer">
           <Settings className="h-4 w-4 mr-2" />
           Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })} className="text-red-600 focus:text-red-600">
+        <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })} className="text-destructive focus:text-destructive cursor-pointer">
           <LogOut className="h-4 w-4 mr-2" />
           Sign Out
         </DropdownMenuItem>

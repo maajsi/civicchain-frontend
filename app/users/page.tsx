@@ -17,6 +17,8 @@ import { CreateIssueModal } from "@/components/modals/create-issue-modal";
 import { NotificationBell } from "@/components/header/notification-bell";
 import { UserMenu } from "@/components/header/user-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function UsersPage() {
   const { data: session, status } = useSession();
@@ -174,19 +176,19 @@ export default function UsersPage() {
   const issues = issuesData?.issues || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-40 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b bg-card sticky top-0 z-40 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/80">
+        <div className="container mx-auto px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-chart-2 rounded-2xl shadow-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-chart-2 rounded-2xl shadow-md flex items-center justify-center">
+                <svg className="w-6 h-6 text-primary-foreground" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
+                <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
                   CivicChain
                 </h1>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -197,7 +199,7 @@ export default function UsersPage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <NotificationBell />
               <UserMenu />
             </div>
@@ -206,10 +208,10 @@ export default function UsersPage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8 animate-fade-in-up">
-          <h2 className="text-4xl font-bold mb-2 tracking-tight">Welcome back!</h2>
-          <p className="text-lg text-muted-foreground">Here are the civic issues near you</p>
+      <main className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="mb-6 sm:mb-8 animate-fade-in-up">
+          <h2 className="text-3xl sm:text-4xl font-bold mb-2 tracking-tight">Welcome back!</h2>
+          <p className="text-base sm:text-lg text-muted-foreground">Here are the civic issues near you</p>
         </div>
 
         <div className="animate-fade-in-up animation-delay-200">
@@ -225,9 +227,9 @@ export default function UsersPage() {
         </div>
 
         {/* Issues Grid */}
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           {issuesLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="space-y-3 animate-fade-in-up" style={{ animationDelay: `${i * 100}ms` }}>
                   <Skeleton className="h-56 w-full rounded-2xl" />
@@ -242,23 +244,28 @@ export default function UsersPage() {
               ))}
             </div>
           ) : issues.length === 0 ? (
-            <div className="text-center py-20 animate-fade-in-up">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary/20 to-chart-2/20 rounded-full flex items-center justify-center">
-                <svg className="w-10 h-10 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">No issues found in your area</h3>
-              <p className="text-muted-foreground mb-6">Be the first to report an issue and make your community better!</p>
-              <button
-                onClick={() => setCreateModalOpen(true)}
-                className="px-6 py-3 bg-gradient-to-r from-primary to-chart-2 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 hover:scale-105"
-              >
-                Report First Issue
-              </button>
-            </div>
+            <Card className="text-center py-12 sm:py-20">
+              <CardContent className="space-y-4">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8 sm:w-10 sm:h-10 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg sm:text-xl font-semibold">No issues found in your area</h3>
+                  <p className="text-sm sm:text-base text-muted-foreground">Be the first to report an issue and make your community better!</p>
+                </div>
+                <Button
+                  onClick={() => setCreateModalOpen(true)}
+                  size="lg"
+                  className="mt-4"
+                >
+                  Report First Issue
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {issues
                 .filter((issue: any) =>
                   searchQuery
