@@ -151,7 +151,7 @@ export default function IssueDetailsPage() {
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
       pothole: "bg-orange-500/10 text-orange-700 border-orange-500/20",
-      drainage: "bg-blue-500/10 text-blue-700 border-blue-500/20",
+      water: "bg-blue-500/10 text-blue-700 border-blue-500/20",
       streetlight: "bg-yellow-500/10 text-yellow-700 border-yellow-500/20",
       garbage: "bg-green-500/10 text-green-700 border-green-500/20",
       other: "bg-purple-500/10 text-purple-700 border-purple-500/20",

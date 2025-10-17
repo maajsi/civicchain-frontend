@@ -18,7 +18,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   garbage: "🗑️ Garbage",
   streetlight: "💡 Streetlight",
   water: "💧 Water",
-  drainage: "🌊 Drainage",
   other: "📋 Other",
 };
 

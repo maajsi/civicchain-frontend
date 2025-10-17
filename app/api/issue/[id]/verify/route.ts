@@ -19,12 +19,16 @@ export async function POST(
       );
     }
 
+    // Get the authorization token from the request headers
+    const authHeader = request.headers.get("authorization");
+
     const response = await axios.post(
       `${API_BASE_URL}/issue/${issueId}/verify`,
       { user_id },
       {
         headers: {
           "Content-Type": "application/json",
+          ...(authHeader && { Authorization: authHeader }),
         },
       }
     );

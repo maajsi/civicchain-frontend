@@ -29,7 +29,6 @@ const CATEGORIES = [
   { id: "garbage", label: "Garbage", icon: "🗑️", color: "from-green-500 to-green-600" },
   { id: "streetlight", label: "Streetlight", icon: "💡", color: "from-yellow-500 to-yellow-600" },
   { id: "water", label: "Water", icon: "💧", color: "from-blue-500 to-blue-600" },
-  { id: "drainage", label: "Drainage", icon: "🌊", color: "from-cyan-500 to-cyan-600" },
   { id: "other", label: "Other", icon: "📋", color: "from-gray-500 to-gray-600" },
 ];
 
