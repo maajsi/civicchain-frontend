@@ -19,6 +19,8 @@ import { UserMenu } from "@/components/header/user-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function UsersPage() {
+  // Always redirect based on userRole if already authenticated (handles reloads)
+  // (Moved below variable declarations to avoid 'used before declaration' error)
   const { data: session, status } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -30,20 +32,19 @@ export default function UsersPage() {
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 
-  // 🚨 TEMPORARY: Force government role for testing - REMOVE THIS IN PRODUCTION
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('civicchain_user_role', 'government');
-    }
-  }, []);
+    // Always redirect based on userRole if already authenticated (handles reloads)
+    useEffect(() => {
+      if (status === "authenticated") {
+        const userRole = getUserRole();
+        if (userRole === "government") {
+          router.replace("/admin");
+        } else if (userRole === "citizen") {
+          router.replace("/users");
+        }
+      }
+    }, [status, router]);
 
-  // Immediate redirect check for government users
-  useEffect(() => {
-    const userRole = getUserRole();
-    if (userRole === 'government' && status === 'authenticated') {
-      router.push('/admin');
-    }
-  }, [router, status]);
+
 
   // Authenticate with backend when session is available (only run once)
   useEffect(() => {
@@ -59,17 +60,14 @@ export default function UsersPage() {
           if (response.success) {
             console.log("Backend authentication successful:", response);
             
-            // Check user role and redirect if government user
+            // Role-based routing after backend authentication
             const userRole = getUserRole();
             if (userRole === 'government') {
               router.push('/admin');
               return;
-            }
-            
-            if (response.is_new) {
-              toast.success("Welcome to CivicChain! 🎉");
             } else {
-              toast.success("Welcome back!");
+              router.push('/users');
+              return;
             }
           } else {
             console.error("Backend auth failed - no success flag");
@@ -134,12 +132,29 @@ export default function UsersPage() {
   // Upvote mutation
   const upvoteMutation = useMutation({
     mutationFn: async (issueId: string) => {
-      const response = await clientApi.post(`/issues/${issueId}/upvote`);
+      const user_id = typeof window !== 'undefined' ? localStorage.getItem('civicchain_user_id') : null;
+      const response = await clientApi.post(`/issues/${issueId}/upvote`, { user_id });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
-      toast.success("Upvoted successfully!");
+      if (data?.issue?.blockchain_tx_hash) {
+        toast.success(
+          <span>
+            Upvoted successfully! <br />
+            <a
+              href={`https://explorer.solana.com/tx/${data.issue.blockchain_tx_hash}?cluster=devnet`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-blue-600"
+            >
+              View on Solana Explorer
+            </a>
+          </span>
+        );
+      } else {
+        toast.success("Upvoted successfully!");
+      }
     },
     onError: () => {
       toast.error("Failed to upvote");
@@ -149,12 +164,29 @@ export default function UsersPage() {
   // Downvote mutation
   const downvoteMutation = useMutation({
     mutationFn: async (issueId: string) => {
-      const response = await clientApi.post(`/issues/${issueId}/downvote`);
+      const user_id = typeof window !== 'undefined' ? localStorage.getItem('civicchain_user_id') : null;
+      const response = await clientApi.post(`/issues/${issueId}/downvote`, { user_id });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
-      toast.success("Downvoted");
+      if (data?.issue?.blockchain_tx_hash) {
+        toast.success(
+          <span>
+            Downvoted! <br />
+            <a
+              href={`https://explorer.solana.com/tx/${data.issue.blockchain_tx_hash}?cluster=devnet`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-blue-600"
+            >
+              View on Solana Explorer
+            </a>
+          </span>
+        );
+      } else {
+        toast.success("Downvoted");
+      }
     },
     onError: () => {
       toast.error("Failed to downvote");
@@ -195,6 +227,13 @@ export default function UsersPage() {
   }
 
   const issues = issuesData?.issues || [];
+  // Helper to prefix image URLs from backend
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://152.42.157.189:3000';
+  function getImageUrl(url: string) {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    return `${API_BASE_URL}${url}`;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -306,7 +345,7 @@ export default function UsersPage() {
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <IssueCard
-                      issue={issue}
+                      issue={{ ...issue, image_url: getImageUrl(issue.image_url) }}
                       onUpvote={handleUpvote}
                       onDownvote={handleDownvote}
                       onShare={handleShare}
@@ -325,10 +364,26 @@ export default function UsersPage() {
       <CreateIssueModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onSuccess={() => {
+        onSuccess={(data) => {
           queryClient.invalidateQueries({ queryKey: ["issues"] });
           setCreateModalOpen(false);
-          toast.success("Issue reported successfully! 🎉");
+          if (data?.issue?.blockchain_tx_hash) {
+            toast.success(
+              <span>
+                Issue reported successfully! 🎉 <br />
+                <a
+                  href={`https://explorer.solana.com/tx/${data.issue.blockchain_tx_hash}?cluster=devnet`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-blue-600"
+                >
+                  View on Solana Explorer
+                </a>
+              </span>
+            );
+          } else {
+            toast.success("Issue reported successfully! 🎉");
+          }
         }}
       />
     </div>

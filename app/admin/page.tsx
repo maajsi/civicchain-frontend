@@ -30,12 +30,6 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("issues");
   const [timeFilter, setTimeFilter] = useState("This Week");
 
-  // 🚨 TEMPORARY: Force government role for testing - REMOVE THIS IN PRODUCTION
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('civicchain_user_role', 'government');
-    }
-  }, []);
 
   // Check if user is authorized
   useEffect(() => {

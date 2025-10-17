@@ -16,10 +16,15 @@ export default function Home() {
     signIn("google", { callbackUrl: "/users" });
   };
 
-  // Redirect to dashboard if already signed in
+  // Redirect to /users or /admin if already authenticated, based on userRole
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/users");
+      const userRole = typeof window !== 'undefined' ? localStorage.getItem('civicchain_user_role') : null;
+      if (userRole === "government") {
+        router.replace("/admin");
+      } else {
+        router.replace("/users");
+      }
     }
   }, [status, router]);
 
