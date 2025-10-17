@@ -51,11 +51,6 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 import { 
-  RadarChart, 
-  PolarGrid, 
-  PolarAngleAxis, 
-  PolarRadiusAxis, 
-  Radar,
   PieChart,
   Pie,
   Cell,
@@ -699,33 +694,6 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
     { status: "Closed", count: stats.closed_issues || 0, fill: "hsl(var(--chart-4))" },
   ].filter(item => item.count > 0);
 
-  // Chart configs
-  const categoryChartConfig = {
-    count: {
-      label: "Issues",
-    },
-    pothole: {
-      label: "Pothole",
-      color: "hsl(var(--chart-1))",
-    },
-    garbage: {
-      label: "Garbage",
-      color: "hsl(var(--chart-2))",
-    },
-    streetlight: {
-      label: "Streetlight",
-      color: "hsl(var(--chart-3))",
-    },
-    water: {
-      label: "Water",
-      color: "hsl(var(--chart-4))",
-    },
-    other: {
-      label: "Other",
-      color: "hsl(var(--chart-5))",
-    },
-  };
-
   const statusChartConfig = {
     count: {
       label: "Issues",
@@ -850,7 +818,7 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Issues by Category - Radar Chart */}
+        {/* Issues by Category - Bar Chart */}
         <Card className="p-8">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
@@ -863,28 +831,53 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
             </h3>
           </div>
           {categoryChartData.length > 0 ? (
-            <ChartContainer config={categoryChartConfig} className="h-[400px]">
-              <RadarChart data={categoryChartData}>
-                <ChartTooltip 
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="line" />}
-                />
-                <PolarGrid className="stroke-border opacity-20" />
-                <PolarAngleAxis 
-                  dataKey="category"
-                  tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
-                />
-                <PolarRadiusAxis angle={90} />
-                <Radar
-                  dataKey="count"
-                  fill="hsl(var(--chart-1))"
-                  fillOpacity={0.6}
-                  stroke="hsl(var(--chart-1))"
-                  strokeWidth={2}
-                />
-                <ChartLegend content={<ChartLegendContent />} />
-              </RadarChart>
-            </ChartContainer>
+            <div className="space-y-5">
+              {(() => {
+                const categoryColors: Record<string, { bg: string; text: string }> = {
+                  pothole: { bg: "bg-orange-500", text: "text-orange-500" },
+                  garbage: { bg: "bg-green-500", text: "text-green-500" },
+                  streetlight: { bg: "bg-yellow-500", text: "text-yellow-500" },
+                  water: { bg: "bg-blue-500", text: "text-blue-500" },
+                  other: { bg: "bg-gray-500", text: "text-gray-500" }
+                };
+                
+                const totalCategoryCount = categoryBreakdown.reduce((sum, cat) => sum + cat.count, 0);
+                
+                return categoryBreakdown.length > 0 ? categoryBreakdown.map((category, index) => {
+                  const percentage = totalCategoryCount > 0 ? Math.round((category.count / totalCategoryCount) * 100) : 0;
+                  const colors = categoryColors[category.category.toLowerCase()] || categoryColors.other;
+                  
+                  return (
+                    <div key={category.category} className="space-y-3 group animate-fade-in-up hover:scale-[1.02] transition-transform duration-300" style={{ animationDelay: `${index * 100}ms` }}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded-full ${colors.bg} animate-pulse`}></div>
+                          <span className="text-sm font-semibold text-foreground capitalize">{category.category}</span>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <span className="text-sm text-muted-foreground font-medium">{category.count} issues</span>
+                          <span className={`text-base font-bold ${colors.text} w-14 text-right`}>{percentage}%</span>
+                        </div>
+                      </div>
+                      <div className="relative w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
+                        <div 
+                          className={`absolute h-full ${colors.bg} rounded-full transition-all duration-1000 ease-out shadow-lg`}
+                          style={{ 
+                            width: `${percentage}%`,
+                          }}
+                        >
+                          <div className="absolute inset-0 animate-shimmer"></div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No category data available</p>
+                  </div>
+                );
+              })()}
+            </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <p>No category data available</p>
