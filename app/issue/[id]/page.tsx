@@ -97,7 +97,7 @@ export default function IssueDetailsPage() {
     onError: (error: unknown) => {
       let errorMsg = "Failed to verify issue";
       if (typeof error === "object" && error !== null) {
-        const err = error as any;
+        const err = error as { response?: { data?: { error?: string } }; message?: string };
         errorMsg = err.response?.data?.error || err.message || errorMsg;
       }
       toast.error(errorMsg);

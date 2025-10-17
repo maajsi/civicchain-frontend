@@ -43,6 +43,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "@/components/ui/chart";
+import { 
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 export default function AdminDashboard() {
   const { data: session, status } = useSession();
@@ -669,6 +681,41 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
   const openPercentage = totalIssues > 0 ? Math.round(((stats.open_issues || 0) / totalIssues) * 100) : 0;
   const inProgressPercentage = totalIssues > 0 ? Math.round(((stats.in_progress_issues || 0) / totalIssues) * 100) : 0;
   
+  // Prepare chart data
+  const categoryChartData = categoryBreakdown.map((cat) => ({
+    category: cat.category.charAt(0).toUpperCase() + cat.category.slice(1),
+    count: cat.count,
+  }));
+
+  const statusChartData = [
+    { status: "Open", count: stats.open_issues || 0, fill: "hsl(var(--chart-1))" },
+    { status: "In Progress", count: stats.in_progress_issues || 0, fill: "hsl(var(--chart-2))" },
+    { status: "Resolved", count: stats.resolved_issues || 0, fill: "hsl(var(--chart-3))" },
+    { status: "Closed", count: stats.closed_issues || 0, fill: "hsl(var(--chart-4))" },
+  ].filter(item => item.count > 0);
+
+  const statusChartConfig = {
+    count: {
+      label: "Issues",
+    },
+    open: {
+      label: "Open",
+      color: "hsl(var(--chart-1))",
+    },
+    inProgress: {
+      label: "In Progress",
+      color: "hsl(var(--chart-2))",
+    },
+    resolved: {
+      label: "Resolved",
+      color: "hsl(var(--chart-3))",
+    },
+    closed: {
+      label: "Closed",
+      color: "hsl(var(--chart-4))",
+    },
+  };
+  
   return (
     <div className="space-y-8">
       {/* Top Stats Grid with Claymorphism */}
@@ -771,8 +818,8 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Issues by Category - Enhanced */}
-        <div className="rounded-3xl bg-gradient-to-br from-card/90 via-background/50 to-secondary/20 p-8 shadow-xl border border-border/50 backdrop-blur-sm hover:shadow-2xl transition-all duration-500">
+        {/* Issues by Category - Bar Chart */}
+        <Card className="p-8">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
               <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-chart-2">
@@ -783,113 +830,104 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
               Issues by Category
             </h3>
           </div>
-          <div className="space-y-5">
-            {(() => {
-              const categoryColors: Record<string, { bg: string; text: string }> = {
-                pothole: { bg: "bg-orange-500", text: "text-orange-500" },
-                garbage: { bg: "bg-green-500", text: "text-green-500" },
-                streetlight: { bg: "bg-yellow-500", text: "text-yellow-500" },
-                water: { bg: "bg-blue-500", text: "text-blue-500" },
-                other: { bg: "bg-gray-500", text: "text-gray-500" }
-              };
-              
-              const totalCategoryCount = categoryBreakdown.reduce((sum, cat) => sum + cat.count, 0);
-              
-              return categoryBreakdown.length > 0 ? categoryBreakdown.map((category, index) => {
-                const percentage = totalCategoryCount > 0 ? Math.round((category.count / totalCategoryCount) * 100) : 0;
-                const colors = categoryColors[category.category.toLowerCase()] || categoryColors.other;
+          {categoryChartData.length > 0 ? (
+            <div className="space-y-5">
+              {(() => {
+                const categoryColors: Record<string, { bg: string; text: string }> = {
+                  pothole: { bg: "bg-orange-500", text: "text-orange-500" },
+                  garbage: { bg: "bg-green-500", text: "text-green-500" },
+                  streetlight: { bg: "bg-yellow-500", text: "text-yellow-500" },
+                  water: { bg: "bg-blue-500", text: "text-blue-500" },
+                  other: { bg: "bg-gray-500", text: "text-gray-500" }
+                };
                 
-                return (
-                  <div key={category.category} className="space-y-3 group animate-fade-in-up hover:scale-[1.02] transition-transform duration-300" style={{ animationDelay: `${index * 100}ms` }}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-4 h-4 rounded-full ${colors.bg} animate-pulse`}></div>
-                        <span className="text-sm font-semibold text-foreground capitalize">{category.category}</span>
+                const totalCategoryCount = categoryBreakdown.reduce((sum, cat) => sum + cat.count, 0);
+                
+                return categoryBreakdown.length > 0 ? categoryBreakdown.map((category, index) => {
+                  const percentage = totalCategoryCount > 0 ? Math.round((category.count / totalCategoryCount) * 100) : 0;
+                  const colors = categoryColors[category.category.toLowerCase()] || categoryColors.other;
+                  
+                  return (
+                    <div key={category.category} className="space-y-3 group animate-fade-in-up hover:scale-[1.02] transition-transform duration-300" style={{ animationDelay: `${index * 100}ms` }}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded-full ${colors.bg} animate-pulse`}></div>
+                          <span className="text-sm font-semibold text-foreground capitalize">{category.category}</span>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <span className="text-sm text-muted-foreground font-medium">{category.count} issues</span>
+                          <span className={`text-base font-bold ${colors.text} w-14 text-right`}>{percentage}%</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-6">
-                        <span className="text-sm text-muted-foreground font-medium">{category.count} issues</span>
-                        <span className={`text-base font-bold ${colors.text} w-14 text-right`}>{percentage}%</span>
+                      <div className="relative w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
+                        <div 
+                          className={`absolute h-full ${colors.bg} rounded-full transition-all duration-1000 ease-out shadow-lg`}
+                          style={{ 
+                            width: `${percentage}%`,
+                          }}
+                        >
+                          <div className="absolute inset-0 animate-shimmer"></div>
+                        </div>
                       </div>
                     </div>
-                    <div className="relative w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
-                      <div 
-                        className={`absolute h-full ${colors.bg} rounded-full transition-all duration-1000 ease-out shadow-lg`}
-                        style={{ 
-                          width: `${percentage}%`,
-                        }}
-                      >
-                        <div className="absolute inset-0 animate-shimmer"></div>
-                      </div>
-                    </div>
+                  );
+                }) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>No category data available</p>
                   </div>
                 );
-              }) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <p>No category data available</p>
-                </div>
-              );
-            })()}
-          </div>
-        </div>
+              })()}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No category data available</p>
+            </div>
+          )}
+        </Card>
 
-        {/* Issue Trends - Coming Soon */}
-        <div className="relative rounded-3xl bg-gradient-to-br from-card/90 via-background/50 to-secondary/20 p-8 shadow-xl border border-border/50 backdrop-blur-sm overflow-hidden">
-          {/* Blurred Content */}
-          <div className="blur-sm pointer-events-none select-none">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-chart-3 to-chart-4">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                  </svg>
-                </div>
-                Monthly Issue Trends
-              </h3>
-              <button className="text-sm text-primary hover:underline font-medium">View All</button>
-            </div>
-          <div className="h-64 flex items-end justify-between gap-3">
-            {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"].map((month, index) => {
-              const heights = [40, 65, 45, 80, 60, 70, 55];
-              const gradients = [
-                "from-chart-1 to-chart-2",
-                "from-chart-2 to-chart-3",
-                "from-chart-3 to-chart-4",
-                "from-chart-4 to-chart-5",
-                "from-chart-5 to-primary",
-                "from-primary to-chart-1",
-                "from-chart-1 to-chart-3"
-              ];
-              return (
-                <div key={month} className="flex-1 flex flex-col items-center gap-3 group cursor-pointer animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
-                  <div className="relative w-full rounded-t-2xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300" style={{ height: `${heights[index]}%` }}>
-                    <div className={`absolute inset-0 bg-gradient-to-t ${gradients[index]} group-hover:scale-105 transition-transform duration-300`}>
-                      <div className="absolute inset-0 animate-shimmer"></div>
-                    </div>
-                    {/* Tooltip on Hover */}
-                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
-                      <div className="bg-foreground text-background px-3 py-1 rounded-lg text-xs font-semibold shadow-xl">
-                        {Math.round(heights[index] * 1.5)} issues
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-xs text-muted-foreground font-medium group-hover:text-foreground transition-colors">{month}</span>
-                </div>
-              );
-            })}
-          </div>
-          
-          {/* Coming Soon Overlay */}
-          <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
-            <div className="text-center animate-fade-in-up">
-              <div className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-br from-primary/20 to-chart-2/20 border-2 border-primary/30 shadow-2xl backdrop-blur-sm">
-                <svg className="w-6 h-6 text-primary animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        {/* Status Breakdown - Pie Chart */}
+        <Card className="p-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-chart-3 to-chart-4">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
-                <span className="text-lg font-bold text-primary">Coming Soon</span>
               </div>
-            </div>
+              Status Breakdown
+            </h3>
           </div>
-        </div>
+          {statusChartData.length > 0 ? (
+            <ChartContainer config={statusChartConfig} className="h-[400px]">
+              <PieChart>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
+                />
+                <Pie
+                  data={statusChartData}
+                  dataKey="count"
+                  nameKey="status"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={120}
+                  paddingAngle={2}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {statusChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <ChartLegend content={<ChartLegendContent />} />
+              </PieChart>
+            </ChartContainer>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No status data available</p>
+            </div>
+          )}
+        </Card>
       </div>
 
       {/* Citizen Feedback - Coming Soon */}
@@ -1031,7 +1069,6 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
           </div>
         </div>
       </Card>
-    </div>
     </div>
   );
 }

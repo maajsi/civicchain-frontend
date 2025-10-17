@@ -20,6 +20,23 @@ import { UserMenu } from "@/components/header/user-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 
+// Define Issue type from API
+interface IssueFromAPI {
+  issue_id: string;
+  image_url: string;
+  description: string;
+  category?: string;
+  status?: string;
+  priority_score?: number;
+  upvotes?: number;
+  downvotes?: number;
+  verification_count?: number;
+  lat?: number;
+  lng?: number;
+  region?: string;
+  created_at?: string;
+}
+
 export default function UsersPage() {
   // Always redirect based on userRole if already authenticated (handles reloads)
   // (Moved below variable declarations to avoid 'used before declaration' error)
@@ -36,7 +53,7 @@ export default function UsersPage() {
   );
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const searchQuery: string = "";
   // const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -91,10 +108,14 @@ export default function UsersPage() {
             console.error("Backend auth failed - no success flag");
             toast.error("Backend authentication failed");
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           if (!isMounted) return;
           console.error("Backend authentication error:", error);
-          const errorMsg = error.response?.data?.error || error.message || "Failed to authenticate with backend";
+          let errorMsg = "Failed to authenticate with backend";
+          if (typeof error === "object" && error !== null) {
+            const err = error as { response?: { data?: { error?: string } }; message?: string };
+            errorMsg = err.response?.data?.error || err.message || errorMsg;
+          }
           toast.error(`Auth Error: ${errorMsg}`);
         } finally {
           if (isMounted) setIsAuthenticating(false);
@@ -113,7 +134,7 @@ export default function UsersPage() {
     return () => {
       isMounted = false;
     };
-  }, [status, session?.user?.email, router, setIsAuthenticating]); // Only re-run if status or user email changes
+  }, [status, session?.user?.email, session?.user, router, setIsAuthenticating]); // Only re-run if status or user email changes
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -415,20 +436,25 @@ export default function UsersPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {issues
-                .filter((issue: { description: string; region?: string }) =>
+                .filter((issue: IssueFromAPI) =>
                   searchQuery
                     ? issue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       issue.region?.toLowerCase().includes(searchQuery.toLowerCase())
                     : true
                 )
-                .map((issue: any, index: number) => {
+                .map((issue: IssueFromAPI, index: number) => {
                   // Map to full IssueCard type
+                  const allowedCategories = ["other", "pothole", "garbage", "streetlight", "water"];
                   const mappedIssue = {
                     issue_id: issue.issue_id,
                     image_url: getImageUrl(issue.image_url),
                     description: issue.description,
-                    category: issue.category ?? "other",
-                    status: issue.status ?? "open",
+                    category: allowedCategories.includes(issue.category ?? "other")
+                      ? (issue.category as "other" | "pothole" | "garbage" | "streetlight" | "water")
+                      : "other",
+                    status: ["open", "in_progress", "resolved", "closed"].includes(issue.status ?? "open")
+                      ? (issue.status as "open" | "in_progress" | "resolved" | "closed")
+                      : "open",
                     priority_score: issue.priority_score ?? 0,
                     upvotes: issue.upvotes ?? 0,
                     downvotes: issue.downvotes ?? 0,
