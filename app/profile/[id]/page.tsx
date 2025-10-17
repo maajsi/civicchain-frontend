@@ -9,12 +9,10 @@ import clientApi from "@/lib/client-api";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Settings,
   Trophy,
   CheckCircle2,
   Users,
@@ -139,9 +137,6 @@ export default function ProfilePage() {
               </Button>
               <h1 className="text-2xl font-bold">Profile & Reputation</h1>
             </div>
-            <Button variant="ghost" size="icon">
-              <Settings className="h-5 w-5" />
-            </Button>
           </div>
         </div>
       </header>

@@ -37,12 +37,26 @@ export function useGeolocation() {
         });
       },
       (error) => {
-        // Default to Hyderabad if permission denied
-        setState({
-          coordinates: { lat: 17.385044, lng: 78.486671 },
-          loading: false,
-          error: error.message,
-        });
+        // Only use fallback location if permission is explicitly denied
+        if (error.code === error.PERMISSION_DENIED) {
+          setState({
+            coordinates: { lat: 17.385044, lng: 78.486671 }, // Hyderabad fallback
+            loading: false,
+            error: "Location permission denied. Using default location.",
+          });
+        } else {
+          // For other errors, don't set coordinates
+          setState({
+            coordinates: null,
+            loading: false,
+            error: error.message,
+          });
+        }
+      },
+      {
+        enableHighAccuracy: true, // Request exact location
+        timeout: 10000,
+        maximumAge: 0, // Don't use cached position
       }
     );
   }, []);

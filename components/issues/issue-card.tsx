@@ -2,6 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, TrendingDown, MapPin, Share2, Clock } from "lucide-react";
+import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 
 interface IssueCardProps {
   issue: {
@@ -13,6 +14,8 @@ interface IssueCardProps {
     priority_score: number;
     upvotes: number;
     downvotes: number;
+    latitude?: number;
+    longitude?: number;
     region?: string;
     distance?: number;
     created_at: string;
@@ -21,6 +24,8 @@ interface IssueCardProps {
   onDownvote: (id: string) => void;
   onShare: (id: string) => void;
   onClick: (id: string) => void;
+  isUpvoting?: boolean;
+  isDownvoting?: boolean;
 }
 
 export function IssueCard({
@@ -29,7 +34,15 @@ export function IssueCard({
   onDownvote,
   onShare,
   onClick,
+  isUpvoting = false,
+  isDownvoting = false,
 }: IssueCardProps) {
+  // Get address from coordinates
+  const { address, loading: geoLoading } = useReverseGeocode(
+    issue.latitude,
+    issue.longitude
+  );
+
   const categoryColors = {
     pothole: "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 border-orange-200 dark:border-orange-500/30",
     garbage: "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400 border-green-200 dark:border-green-500/30",
@@ -109,7 +122,11 @@ export function IssueCard({
         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span className="line-clamp-1">
-            {issue.region || "Unknown location"}
+            {geoLoading ? (
+              <span className="animate-pulse">Loading location...</span>
+            ) : (
+              address
+            )}
           </span>
           {issue.distance && (
             <>
@@ -130,8 +147,13 @@ export function IssueCard({
             e.stopPropagation();
             onUpvote(issue.issue_id);
           }}
+          disabled={isUpvoting}
         >
-          <TrendingUp className="h-4 w-4 mr-1" />
+          {isUpvoting ? (
+            <span className="animate-spin inline-block mr-2 h-4 w-4 border-2 border-green-500 border-t-transparent rounded-full" />
+          ) : (
+            <TrendingUp className="h-4 w-4 mr-1" />
+          )}
           {issue.upvotes}
         </Button>
         <Button
@@ -142,8 +164,13 @@ export function IssueCard({
             e.stopPropagation();
             onDownvote(issue.issue_id);
           }}
+          disabled={isDownvoting}
         >
-          <TrendingDown className="h-4 w-4 mr-1" />
+          {isDownvoting ? (
+            <span className="animate-spin inline-block mr-2 h-4 w-4 border-2 border-red-500 border-t-transparent rounded-full" />
+          ) : (
+            <TrendingDown className="h-4 w-4 mr-1" />
+          )}
           {issue.downvotes}
         </Button>
         <Button

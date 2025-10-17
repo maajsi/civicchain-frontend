@@ -8,13 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { toast } from "sonner";
 import { useDropzone } from "react-dropzone";
 import { Upload, Camera, Check, MapPin } from "lucide-react";
 import clientApi from "@/lib/client-api";
 import { getUserId } from "@/lib/auth";
 import { useGeolocation } from "@/hooks/use-geolocation";
+
+// Lazy load the map component to avoid SSR issues
+const LocationPicker = lazy(() => 
+  import("@/components/map/location-picker").then(module => ({ default: module.LocationPicker }))
+);
 
 interface CreateIssueModalProps {
   open: boolean;
@@ -348,7 +353,11 @@ function LocationStep({
   const [coords, setCoords] = useState(
     currentLocation || { lat: 17.385044, lng: 78.486671 }
   );
-  const [address, setAddress] = useState("Manually select location on map");
+  const [address, setAddress] = useState("Selected location on map");
+
+  const handleLocationChange = (newCoords: { lat: number; lng: number }) => {
+    setCoords(newCoords);
+  };
 
   const handleConfirm = () => {
     onNext({ ...coords, address });
@@ -359,26 +368,32 @@ function LocationStep({
       <div>
         <h3 className="font-semibold mb-2">Pin Issue Location</h3>
         <p className="text-sm text-muted-foreground">
-          Using your current location or adjust manually
+          Click on the map or drag the marker to select the exact location
         </p>
       </div>
 
-      <div className="bg-muted p-8 rounded-lg text-center">
-        <MapPin className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-        <p className="text-sm font-medium">Map Integration Coming Soon</p>
-        <p className="text-xs text-muted-foreground mt-2">
-          Using current location for now
+      <Suspense
+        fallback={
+          <div className="w-full h-[400px] bg-muted rounded-lg flex items-center justify-center">
+            <div className="text-center space-y-2">
+              <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-sm text-muted-foreground">Loading map...</p>
+            </div>
+          </div>
+        }
+      >
+        <LocationPicker
+          initialPosition={coords}
+          onLocationChange={handleLocationChange}
+        />
+      </Suspense>
+
+      <div className="bg-muted p-3 rounded-lg">
+        <p className="text-sm font-medium">Selected Location:</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Lat: {coords.lat.toFixed(6)}, Lng: {coords.lng.toFixed(6)}
         </p>
       </div>
-
-      {currentLocation && (
-        <div className="bg-muted p-3 rounded-lg">
-          <p className="text-sm font-medium">Current Location:</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Lat: {currentLocation.lat.toFixed(6)}, Lng: {currentLocation.lng.toFixed(6)}
-          </p>
-        </div>
-      )}
 
       <Button
         className="w-full"

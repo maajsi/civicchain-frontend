@@ -11,12 +11,14 @@ import { authenticateWithBackend, getUserRole } from "@/lib/auth";
 import { toast } from "sonner";
 
 import { IssueCard } from "@/components/issues/issue-card";
-import { SearchFilterBar } from "@/components/issues/search-filter-bar";
+import { AdvancedFilters } from "@/components/issues/advanced-filters";
+import { ActiveFilterBadges } from "@/components/issues/active-filter-badges";
+import { LocationSearchInput } from "@/components/issues/location-search-input";
 import { FABCreateIssue } from "@/components/issues/fab-create-issue";
 import { CreateIssueModal } from "@/components/modals/create-issue-modal";
-import { NotificationBell } from "@/components/header/notification-bell";
 import { UserMenu } from "@/components/header/user-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 
 export default function UsersPage() {
   // Always redirect based on userRole if already authenticated (handles reloads)
@@ -27,11 +29,26 @@ export default function UsersPage() {
   const { coordinates, loading: geoLoading } = useGeolocation();
   const { setLocation } = useAppStore();
 
+  // Get current location address
+  const { address: currentAddress, loading: addressLoading } = useReverseGeocode(
+    coordinates?.lat,
+    coordinates?.lng
+  );
+
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   // const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [radius, setRadius] = useState<number>(5000);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
+  
+  // Location search state
+  const [searchLocation, setSearchLocation] = useState<{
+    lat: number;
+    lng: number;
+    displayName: string;
+  } | null>(null);
 
     // Always redirect based on userRole if already authenticated (handles reloads)
     useEffect(() => {
@@ -110,23 +127,34 @@ export default function UsersPage() {
     }
   }, [coordinates, setLocation]);
 
-  // Fetch nearby issues
+  // Fetch nearby issues - use search location if available, otherwise use current location
   const { data: issuesData, isLoading: issuesLoading } = useQuery({
-    queryKey: ["issues", coordinates?.lat, coordinates?.lng, searchQuery, selectedTypes],
+    queryKey: ["issues", 
+      searchLocation?.lat || coordinates?.lat, 
+      searchLocation?.lng || coordinates?.lng, 
+      searchQuery, 
+      selectedTypes, 
+      selectedStatuses, 
+      radius
+    ],
     queryFn: async () => {
-      if (!coordinates) return null;
+      const activeCoords = searchLocation || coordinates;
+      if (!activeCoords) return null;
       const params: Record<string, any> = {
-        lat: coordinates.lat,
-        lng: coordinates.lng,
-        radius: 5000,
+        lat: activeCoords.lat,
+        lng: activeCoords.lng,
+        radius: radius,
       };
       if (selectedTypes.length > 0) {
         params.category = selectedTypes.join(",");
       }
+      if (selectedStatuses.length > 0) {
+        params.status = selectedStatuses.join(",");
+      }
       const response = await clientApi.get("/issues", { params });
       return response.data;
     },
-    enabled: !!coordinates && !isAuthenticating,
+    enabled: !!(searchLocation || coordinates) && !isAuthenticating,
     refetchInterval: 30000,
   });
 
@@ -139,23 +167,27 @@ export default function UsersPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
-      if (data?.issue?.blockchain_tx_hash) {
-        toast.success(
-          <span>
-            Upvoted successfully! <br />
-            <a
-              href={`https://explorer.solana.com/tx/${data.issue.blockchain_tx_hash}?cluster=devnet`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-blue-600"
-            >
-              View on Solana Explorer
-            </a>
-          </span>
-        );
-      } else {
-        toast.success("Upvoted successfully!");
-      }
+      console.log("Upvote response data:", data);
+      
+      // Check multiple possible response structures
+      const txHash = data?.blockchain_tx_hash || data?.issue?.blockchain_tx_hash || data?.transaction_hash;
+      
+      const message = txHash 
+        ? (
+            <span>
+              Upvoted successfully! 🎉 <br />
+              <a
+                href={`https://explorer.solana.com/tx/${txHash}?cluster=devnet`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-blue-600 hover:text-blue-800"
+              >
+                View on Solana Explorer →
+              </a>
+            </span>
+          )
+        : "Upvoted successfully!";
+      toast.success(message);
     },
     onError: () => {
       toast.error("Failed to upvote");
@@ -171,23 +203,27 @@ export default function UsersPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
-      if (data?.issue?.blockchain_tx_hash) {
-        toast.success(
-          <span>
-            Downvoted! <br />
-            <a
-              href={`https://explorer.solana.com/tx/${data.issue.blockchain_tx_hash}?cluster=devnet`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline text-blue-600"
-            >
-              View on Solana Explorer
-            </a>
-          </span>
-        );
-      } else {
-        toast.success("Downvoted");
-      }
+      console.log("Downvote response data:", data);
+      
+      // Check multiple possible response structures
+      const txHash = data?.blockchain_tx_hash || data?.issue?.blockchain_tx_hash || data?.transaction_hash;
+      
+      const message = txHash 
+        ? (
+            <span>
+              Downvoted! 👎 <br />
+              <a
+                href={`https://explorer.solana.com/tx/${txHash}?cluster=devnet`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-blue-600 hover:text-blue-800"
+              >
+                View on Solana Explorer →
+              </a>
+            </span>
+          )
+        : "Downvoted";
+      toast.success(message);
     },
     onError: () => {
       toast.error("Failed to downvote");
@@ -256,12 +292,17 @@ export default function UsersPage() {
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                   </svg>
-                  {coordinates ? "Hyderabad, Telangana" : "Loading location..."}
+                  {addressLoading || geoLoading ? (
+                    <span className="animate-pulse">Loading location...</span>
+                  ) : searchLocation ? (
+                    <span className="text-primary font-medium">Searching: {searchLocation.displayName}</span>
+                  ) : (
+                    currentAddress
+                  )}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <NotificationBell />
               <UserMenu />
             </div>
           </div>
@@ -281,21 +322,59 @@ export default function UsersPage() {
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
             </svg>
-            <span className="text-sm font-medium">{coordinates ? "Hyderabad, Telangana" : "Loading location..."}</span>
+            <span className="text-sm font-medium">
+              {addressLoading || geoLoading ? (
+                <span className="animate-pulse">Loading location...</span>
+              ) : searchLocation ? (
+                <span className="text-primary">Searching: {searchLocation.displayName}</span>
+              ) : (
+                currentAddress
+              )}
+            </span>
           </div>
         </div>
 
-        <div className="animate-fade-in-up animation-delay-200">
-          <SearchFilterBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedTypes={selectedTypes}
-            onTypeToggle={(type) => {
-              setSelectedTypes((prev) =>
-                prev.includes(type)
-                  ? prev.filter((t) => t !== type)
-                  : [...prev, type]
-              );
+        <div className="animate-fade-in-up animation-delay-200 flex items-center gap-3">
+          <div className="flex-1">
+            <LocationSearchInput
+              onLocationSelect={(lat, lng, displayName) => {
+                setSearchLocation({ lat, lng, displayName });
+                toast.success(`Searching near: ${displayName}`);
+              }}
+              onClear={() => {
+                setSearchLocation(null);
+                toast.info("Cleared location - using your current location");
+              }}
+              currentLocation={searchLocation?.displayName || currentAddress}
+            />
+          </div>
+          <AdvancedFilters
+            selectedCategories={selectedTypes}
+            onCategoriesChange={setSelectedTypes}
+            selectedStatuses={selectedStatuses}
+            onStatusesChange={setSelectedStatuses}
+            radius={radius}
+            onRadiusChange={setRadius}
+          />
+        </div>
+
+        {/* Active Filter Badges */}
+        <div className="mt-6 animate-fade-in-up animation-delay-300">
+          <ActiveFilterBadges
+            selectedCategories={selectedTypes}
+            selectedStatuses={selectedStatuses}
+            radius={radius}
+            onRemoveCategory={(category) =>
+              setSelectedTypes((prev) => prev.filter((c) => c !== category))
+            }
+            onRemoveStatus={(status) =>
+              setSelectedStatuses((prev) => prev.filter((s) => s !== status))
+            }
+            onResetRadius={() => setRadius(5000)}
+            onClearAll={() => {
+              setSelectedTypes([]);
+              setSelectedStatuses([]);
+              setRadius(5000);
             }}
           />
         </div>
@@ -349,11 +428,18 @@ export default function UsersPage() {
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <IssueCard
-                      issue={{ ...issue, image_url: getImageUrl(issue.image_url) }}
+                      issue={{ 
+                        ...issue, 
+                        image_url: getImageUrl(issue.image_url),
+                        latitude: issue.lat,
+                        longitude: issue.lng
+                      }}
                       onUpvote={handleUpvote}
                       onDownvote={handleDownvote}
                       onShare={handleShare}
                       onClick={handleIssueClick}
+                      isUpvoting={upvoteMutation.status === 'pending'}
+                      isDownvoting={downvoteMutation.status === 'pending'}
                     />
                   </div>
                 ))}
