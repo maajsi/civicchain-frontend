@@ -282,6 +282,14 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
     ? mockIssues 
     : mockIssues.filter(issue => issue.status === statusFilter);
 
+  // Compute display stats: prefer server-provided stats, fallback to counts from mockIssues
+  const displayStats = {
+    open_issues: stats?.open_issues ?? mockIssues.filter(i => i.status === "open").length,
+    in_progress_issues: stats?.in_progress_issues ?? mockIssues.filter(i => i.status === "in-progress").length,
+    resolved_issues: stats?.resolved_issues ?? mockIssues.filter(i => i.status === "resolved").length,
+    total_issues: stats?.total_issues ?? mockIssues.length,
+  };
+
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
@@ -293,7 +301,7 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Open</p>
-              <p className="text-2xl font-bold">{stats.open_issues || 0}</p>
+              <p className="text-2xl font-bold">{displayStats.open_issues}</p>
             </div>
           </div>
         </Card>
@@ -304,7 +312,7 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">In Progress</p>
-              <p className="text-2xl font-bold">{stats.in_progress_issues || 0}</p>
+              <p className="text-2xl font-bold">{displayStats.in_progress_issues}</p>
             </div>
           </div>
         </Card>
@@ -315,7 +323,7 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Resolved</p>
-              <p className="text-2xl font-bold">{stats.resolved_issues || 0}</p>
+              <p className="text-2xl font-bold">{displayStats.resolved_issues}</p>
             </div>
           </div>
         </Card>
@@ -326,7 +334,7 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total</p>
-              <p className="text-2xl font-bold">{stats.total_issues || 0}</p>
+              <p className="text-2xl font-bold">{displayStats.total_issues}</p>
             </div>
           </div>
         </Card>
