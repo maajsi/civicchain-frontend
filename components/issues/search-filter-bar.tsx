@@ -1,21 +1,27 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { List, Map as MapIcon, Filter, Search } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu";
+import { Filter, Search } from "lucide-react";
 
 interface SearchFilterBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  viewMode: "list" | "map";
-  onViewModeChange: (mode: "list" | "map") => void;
-  onFilterOpen: () => void;
+  selectedTypes: string[];
+  onTypeToggle: (type: string) => void;
+  issueTypes?: string[];
 }
 
 export function SearchFilterBar({
   searchQuery,
   onSearchChange,
-  viewMode,
-  onViewModeChange,
-  onFilterOpen,
+  selectedTypes,
+  onTypeToggle,
+  issueTypes = ["pothole", "garbage", "streetlight", "water", "other"],
 }: SearchFilterBarProps) {
   return (
     <div className="flex items-center gap-3 w-full">
@@ -24,30 +30,29 @@ export function SearchFilterBar({
         <Input
           placeholder="Search issues by location or type..."
           value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-10"
+          onChange={() => {}}
+          className="pl-10 cursor-not-allowed opacity-60"
+          disabled
         />
       </div>
-
-      <div className="flex gap-2">
-        <Button
-          variant={viewMode === "list" ? "default" : "outline"}
-          size="icon"
-          onClick={() => onViewModeChange("list")}
-        >
-          <List className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={viewMode === "map" ? "default" : "outline"}
-          size="icon"
-          onClick={() => onViewModeChange("map")}
-        >
-          <MapIcon className="h-4 w-4" />
-        </Button>
-        <Button variant="outline" size="icon" onClick={onFilterOpen}>
-          <Filter className="h-4 w-4" />
-        </Button>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon">
+            <Filter className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {issueTypes.map((type) => (
+            <DropdownMenuCheckboxItem
+              key={type}
+              checked={selectedTypes.includes(type)}
+              onCheckedChange={() => onTypeToggle(type)}
+            >
+              {type}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

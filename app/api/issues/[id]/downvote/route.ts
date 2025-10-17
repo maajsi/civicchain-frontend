@@ -4,7 +4,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://152.42.157.189:3
 
 export async function POST(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -12,9 +12,11 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await context.params;
+
     // Forward the request body to the backend
     const body = await request.json();
-    const response = await fetch(`${API_BASE_URL}/issue/${context.params.id}/downvote`, {
+    const response = await fetch(`${API_BASE_URL}/issue/${id}/downvote`, {
       method: "POST",
       headers: {
         "Authorization": authHeader,

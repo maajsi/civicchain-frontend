@@ -29,7 +29,8 @@ export default function UsersPage() {
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  // const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 
     // Always redirect based on userRole if already authenticated (handles reloads)
@@ -111,22 +112,22 @@ export default function UsersPage() {
 
   // Fetch nearby issues
   const { data: issuesData, isLoading: issuesLoading } = useQuery({
-    queryKey: ["issues", coordinates?.lat, coordinates?.lng, searchQuery],
+    queryKey: ["issues", coordinates?.lat, coordinates?.lng, searchQuery, selectedTypes],
     queryFn: async () => {
       if (!coordinates) return null;
-      
-      const response = await clientApi.get("/issues", {
-        params: {
-          lat: coordinates.lat,
-          lng: coordinates.lng,
-          radius: 5000, // 5km
-          // Don't send status filter - backend returns all by default
-        },
-      });
+      const params: Record<string, any> = {
+        lat: coordinates.lat,
+        lng: coordinates.lng,
+        radius: 5000,
+      };
+      if (selectedTypes.length > 0) {
+        params.category = selectedTypes.join(",");
+      }
+      const response = await clientApi.get("/issues", { params });
       return response.data;
     },
-    enabled: !!coordinates && !isAuthenticating, // Wait for auth to complete
-    refetchInterval: 30000, // Refetch every 30 seconds
+    enabled: !!coordinates && !isAuthenticating,
+    refetchInterval: 30000,
   });
 
   // Upvote mutation
@@ -288,10 +289,13 @@ export default function UsersPage() {
           <SearchFilterBar
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            onFilterOpen={() => {
-              toast.info("Advanced filters coming soon");
+            selectedTypes={selectedTypes}
+            onTypeToggle={(type) => {
+              setSelectedTypes((prev) =>
+                prev.includes(type)
+                  ? prev.filter((t) => t !== type)
+                  : [...prev, type]
+              );
             }}
           />
         </div>
@@ -364,26 +368,10 @@ export default function UsersPage() {
       <CreateIssueModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onSuccess={(data) => {
+        onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ["issues"] });
           setCreateModalOpen(false);
-          if (data?.issue?.blockchain_tx_hash) {
-            toast.success(
-              <span>
-                Issue reported successfully! 🎉 <br />
-                <a
-                  href={`https://explorer.solana.com/tx/${data.issue.blockchain_tx_hash}?cluster=devnet`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline text-blue-600"
-                >
-                  View on Solana Explorer
-                </a>
-              </span>
-            );
-          } else {
-            toast.success("Issue reported successfully! 🎉");
-          }
+          toast.success("Issue reported successfully! 🎉");
         }}
       />
     </div>
