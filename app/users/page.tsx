@@ -53,7 +53,7 @@ export default function UsersPage() {
   );
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const searchQuery = "";
+  const searchQuery: string = "";
   // const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -444,12 +444,17 @@ export default function UsersPage() {
                 )
                 .map((issue: IssueFromAPI, index: number) => {
                   // Map to full IssueCard type
+                  const allowedCategories = ["other", "pothole", "garbage", "streetlight", "water"];
                   const mappedIssue = {
                     issue_id: issue.issue_id,
                     image_url: getImageUrl(issue.image_url),
                     description: issue.description,
-                    category: issue.category ?? "other",
-                    status: issue.status ?? "open",
+                    category: allowedCategories.includes(issue.category ?? "other")
+                      ? (issue.category as "other" | "pothole" | "garbage" | "streetlight" | "water")
+                      : "other",
+                    status: ["open", "in_progress", "resolved", "closed"].includes(issue.status ?? "open")
+                      ? (issue.status as "open" | "in_progress" | "resolved" | "closed")
+                      : "open",
                     priority_score: issue.priority_score ?? 0,
                     upvotes: issue.upvotes ?? 0,
                     downvotes: issue.downvotes ?? 0,
