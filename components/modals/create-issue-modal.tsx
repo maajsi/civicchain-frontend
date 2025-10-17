@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -115,52 +115,60 @@ export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalP
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Report New Issue</DialogTitle>
-          <Progress value={(step / 6) * 100} className="mt-2" />
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b">
+          <DialogTitle className="text-xl">Report New Issue</DialogTitle>
+          <div className="space-y-2 mt-3">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>Step {step} of 6</span>
+              <span>{Math.round((step / 6) * 100)}%</span>
+            </div>
+            <Progress value={(step / 6) * 100} className="h-2" />
+          </div>
         </DialogHeader>
 
-        {step === STEPS.UPLOAD && <UploadStep onUpload={handleImageUpload} />}
-        {step === STEPS.CLASSIFY && <ClassifyingStep />}
-        {step === STEPS.CONFIRM && (
-          <ConfirmCategoryStep
-            aiCategory={aiClassification}
-            selected={selectedCategory}
-            onSelect={setSelectedCategory}
-            onConfirm={() => setStep(STEPS.DESCRIPTION)}
-          />
-        )}
-        {step === STEPS.DESCRIPTION && (
-          <DescriptionStep
-            imagePreview={imagePreview}
-            category={selectedCategory}
-            description={description}
-            onDescriptionChange={setDescription}
-            onNext={() => setStep(STEPS.LOCATION)}
-          />
-        )}
-        {step === STEPS.LOCATION && (
-          <LocationStep
-            currentLocation={coordinates}
-            onNext={(coords) => {
-              setLocation(coords);
-              setStep(STEPS.REVIEW);
-            }}
-          />
-        )}
-        {step === STEPS.REVIEW && (
-          <ReviewStep
-            data={{
-              imagePreview,
-              category: selectedCategory,
-              description,
-              location,
-            }}
-            isSubmitting={isSubmitting}
-            onSubmit={handleSubmit}
-          />
-        )}
+        <div className="px-6 py-6">
+          {step === STEPS.UPLOAD && <UploadStep onUpload={handleImageUpload} />}
+          {step === STEPS.CLASSIFY && <ClassifyingStep />}
+          {step === STEPS.CONFIRM && (
+            <ConfirmCategoryStep
+              aiCategory={aiClassification}
+              selected={selectedCategory}
+              onSelect={setSelectedCategory}
+              onConfirm={() => setStep(STEPS.DESCRIPTION)}
+            />
+          )}
+          {step === STEPS.DESCRIPTION && (
+            <DescriptionStep
+              imagePreview={imagePreview}
+              category={selectedCategory}
+              description={description}
+              onDescriptionChange={setDescription}
+              onNext={() => setStep(STEPS.LOCATION)}
+            />
+          )}
+          {step === STEPS.LOCATION && (
+            <LocationStep
+              currentLocation={coordinates}
+              onNext={(coords) => {
+                setLocation(coords);
+                setStep(STEPS.REVIEW);
+              }}
+            />
+          )}
+          {step === STEPS.REVIEW && (
+            <ReviewStep
+              data={{
+                imagePreview,
+                category: selectedCategory,
+                description,
+                location,
+              }}
+              isSubmitting={isSubmitting}
+              onSubmit={handleSubmit}
+            />
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -180,18 +188,18 @@ function UploadStep({ onUpload }: { onUpload: (file: File) => void }) {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div
         {...getRootProps()}
         className={`
-          border-2 border-dashed rounded-lg p-12 text-center cursor-pointer
-          transition-colors
-          ${isDragActive ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}
+          border-2 border-dashed rounded-xl p-8 sm:p-12 text-center cursor-pointer
+          transition-all duration-200
+          ${isDragActive ? "border-primary bg-primary/5 scale-[0.98]" : "border-border hover:border-primary/50 hover:bg-accent/50"}
         `}
       >
         <input {...getInputProps()} />
-        <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-        <h3 className="text-lg font-semibold mb-2">Upload Issue Photo</h3>
+        <Upload className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-muted-foreground" />
+        <h3 className="text-base sm:text-lg font-semibold mb-2">Upload Issue Photo</h3>
         <p className="text-sm text-muted-foreground">
           Drag and drop an image here, or click to select
         </p>
@@ -200,14 +208,14 @@ function UploadStep({ onUpload }: { onUpload: (file: File) => void }) {
         </p>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <div className="flex-1 h-px bg-border" />
-        <span className="text-sm text-muted-foreground">OR</span>
+        <span className="text-xs sm:text-sm text-muted-foreground">OR</span>
         <div className="flex-1 h-px bg-border" />
       </div>
 
       <Button variant="outline" className="w-full" size="lg">
-        <Camera className="h-5 w-5 mr-2" />
+        <Camera className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
         Take Photo with Camera
       </Button>
     </div>
@@ -238,36 +246,38 @@ function ConfirmCategoryStep({
   onConfirm: () => void;
 }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {aiCategory && (
-        <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-          <p className="text-sm font-medium flex items-center gap-2">
-            <span className="h-2 w-2 bg-primary rounded-full animate-pulse" />
-            AI Detected: <strong className="capitalize">{aiCategory}</strong>
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Please confirm or select a different category
-          </p>
-        </div>
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-4">
+            <p className="text-sm font-medium flex items-center gap-2">
+              <span className="h-2 w-2 bg-primary rounded-full animate-pulse" />
+              AI Detected: <strong className="capitalize">{aiCategory}</strong>
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Please confirm or select a different category
+            </p>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
         {CATEGORIES.map((cat) => (
           <Card
             key={cat.id}
             className={`
-              p-6 cursor-pointer transition-all relative
-              ${selected === cat.id ? "ring-2 ring-primary shadow-lg" : "hover:shadow-md"}
+              p-4 sm:p-6 cursor-pointer transition-all relative hover:shadow-md
+              ${selected === cat.id ? "ring-2 ring-primary shadow-lg" : ""}
             `}
             onClick={() => onSelect(cat.id)}
           >
             {selected === cat.id && (
-              <div className="absolute top-2 right-2 h-6 w-6 bg-primary rounded-full flex items-center justify-center">
-                <Check className="h-4 w-4 text-primary-foreground" />
+              <div className="absolute top-2 right-2 h-5 w-5 sm:h-6 sm:w-6 bg-primary rounded-full flex items-center justify-center">
+                <Check className="h-3 w-3 sm:h-4 sm:w-4 text-primary-foreground" />
               </div>
             )}
-            <div className="text-4xl mb-2">{cat.icon}</div>
-            <h4 className="font-semibold">{cat.label}</h4>
+            <div className="text-3xl sm:text-4xl mb-2">{cat.icon}</div>
+            <h4 className="font-semibold text-sm sm:text-base">{cat.label}</h4>
           </Card>
         ))}
       </div>
@@ -299,29 +309,33 @@ function DescriptionStep({
   onNext: () => void;
 }) {
   return (
-    <div className="space-y-6">
-      <div className="flex gap-4">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row gap-4">
         {imagePreview && (
           <img
             src={imagePreview}
             alt="Preview"
-            className="w-32 h-32 object-cover rounded-lg"
+            className="w-full sm:w-32 h-32 object-cover rounded-lg"
           />
         )}
-        <div className="flex-1">
-          <Badge className="mb-2 capitalize">{category}</Badge>
-          <Label htmlFor="description">Describe the Issue</Label>
-          <Textarea
-            id="description"
-            placeholder="Provide details about the issue, exact location, and severity..."
-            value={description}
-            onChange={(e) => onDescriptionChange(e.target.value)}
-            className="mt-2 min-h-[100px]"
-            maxLength={500}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            {description.length}/500 characters
-          </p>
+        <div className="flex-1 space-y-3">
+          <div>
+            <Badge className="capitalize">{category}</Badge>
+          </div>
+          <div>
+            <Label htmlFor="description" className="text-sm font-medium">Describe the Issue</Label>
+            <Textarea
+              id="description"
+              placeholder="Provide details about the issue, exact location, and severity..."
+              value={description}
+              onChange={(e) => onDescriptionChange(e.target.value)}
+              className="mt-2 min-h-[100px] resize-none"
+              maxLength={500}
+            />
+            <p className="text-xs text-muted-foreground mt-1.5">
+              {description.length}/500 characters
+            </p>
+          </div>
         </div>
       </div>
 
@@ -407,49 +421,53 @@ function ReviewStep({
   onSubmit: () => void;
 }) {
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold">Review Your Report</h3>
+    <div className="space-y-4 sm:space-y-6">
+      <h3 className="text-base sm:text-lg font-semibold">Review Your Report</h3>
 
-      <Card className="p-4">
-        {data.imagePreview && (
-          <img
-            src={data.imagePreview}
-            alt="Issue"
-            className="w-full h-48 object-cover rounded-lg mb-4"
-          />
-        )}
+      <Card>
+        <CardContent className="p-4">
+          {data.imagePreview && (
+            <img
+              src={data.imagePreview}
+              alt="Issue"
+              className="w-full h-48 object-cover rounded-lg mb-4"
+            />
+          )}
 
-        <div className="space-y-3">
-          <div>
-            <p className="text-sm text-muted-foreground">Category</p>
-            <Badge className="mt-1 capitalize">{data.category}</Badge>
-          </div>
+          <div className="space-y-4">
+            <div>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-1.5">Category</p>
+              <Badge className="capitalize">{data.category}</Badge>
+            </div>
 
-          <div>
-            <p className="text-sm text-muted-foreground">Description</p>
-            <p className="text-sm mt-1">{data.description}</p>
-          </div>
+            <div>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-1.5">Description</p>
+              <p className="text-sm">{data.description}</p>
+            </div>
 
-          <div>
-            <p className="text-sm text-muted-foreground">Location</p>
-            <div className="flex items-start gap-2 mt-1">
-              <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
-              <div className="text-sm">
-                <p>{data.location.address}</p>
-                <p className="text-xs text-muted-foreground">
-                  {data.location.lat.toFixed(6)}, {data.location.lng.toFixed(6)}
-                </p>
+            <div>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-1.5">Location</p>
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                <div className="text-sm">
+                  <p>{data.location.address}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {data.location.lat.toFixed(6)}, {data.location.lng.toFixed(6)}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </CardContent>
       </Card>
 
-      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <p className="text-sm text-blue-900 dark:text-blue-100">
-          📋 Your report will be recorded on the blockchain for transparency and immutability.
-        </p>
-      </div>
+      <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+        <CardContent className="p-4">
+          <p className="text-xs sm:text-sm text-blue-900 dark:text-blue-100">
+            📋 Your report will be recorded on the blockchain for transparency and immutability.
+          </p>
+        </CardContent>
+      </Card>
 
       <Button
         className="w-full"
@@ -457,7 +475,14 @@ function ReviewStep({
         onClick={onSubmit}
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Submitting to Blockchain..." : "Submit Report"}
+        {isSubmitting ? (
+          <>
+            <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+            Submitting to Blockchain...
+          </>
+        ) : (
+          "Submit Report"
+        )}
       </Button>
     </div>
   );
