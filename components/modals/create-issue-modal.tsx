@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { useDropzone } from "react-dropzone";
 import { Upload, Camera, Check, MapPin } from "lucide-react";
 import clientApi from "@/lib/client-api";
+import { getUserId } from "@/lib/auth";
 import { useGeolocation } from "@/hooks/use-geolocation";
 
 interface CreateIssueModalProps {
@@ -77,14 +78,15 @@ export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalP
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      const user_id = typeof window !== 'undefined' ? getUserId() : null;
       await clientApi.post("/issues/report", {
         image_url: imageUrl,
         description,
         category: selectedCategory,
         lat: location.lat,
         lng: location.lng,
+        user_id,
       });
-      
       toast.success("Issue reported successfully!");
       resetForm();
       onSuccess();

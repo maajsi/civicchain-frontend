@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { useAppStore } from "@/store/app-store";
 import clientApi from "@/lib/client-api";
+import { authenticateWithBackend } from "@/lib/auth";
 import { toast } from "sonner";
 
 import { IssueCard } from "@/components/issues/issue-card";
@@ -33,21 +34,16 @@ export default function UsersPage() {
   useEffect(() => {
     let isMounted = true;
 
-    const authenticateWithBackend = async () => {
+
+    const doBackendAuth = async () => {
       if (status === "authenticated" && session?.user && isMounted) {
         try {
           console.log("Attempting backend authentication...");
-          const response = await clientApi.post("/auth/login");
-          
+          const response = await authenticateWithBackend();
           if (!isMounted) return;
-          
-          if (response.data.success) {
-            console.log("Backend authentication successful:", response.data);
-            // Store the JWT token
-            if (response.data.jwt_token) {
-              localStorage.setItem('civicchain_token', response.data.jwt_token);
-            }
-            if (response.data.is_new) {
+          if (response.success) {
+            console.log("Backend authentication successful:", response);
+            if (response.is_new) {
               toast.success("Welcome to CivicChain! 🎉");
             } else {
               toast.success("Welcome back!");
@@ -58,36 +54,22 @@ export default function UsersPage() {
           }
         } catch (error: any) {
           if (!isMounted) return;
-          
           console.error("Backend authentication error:", error);
-          console.error("Error details:", error.response?.data);
-          
-          // Show the actual error message to user
           const errorMsg = error.response?.data?.error || error.message || "Failed to authenticate with backend";
           toast.error(`Auth Error: ${errorMsg}`);
-          
-          // Don't redirect - let user see the error
         } finally {
-          if (isMounted) {
-            setIsAuthenticating(false);
-          }
+          if (isMounted) setIsAuthenticating(false);
         }
       } else if (status === "unauthenticated") {
-        if (isMounted) {
-          router.push("/");
-        }
+        if (isMounted) router.push("/");
       } else if (status === "loading") {
-        if (isMounted) {
-          setIsAuthenticating(true);
-        }
+        if (isMounted) setIsAuthenticating(true);
       } else {
-        if (isMounted) {
-          setIsAuthenticating(false);
-        }
+        if (isMounted) setIsAuthenticating(false);
       }
     };
 
-    authenticateWithBackend();
+    doBackendAuth();
 
     return () => {
       isMounted = false;

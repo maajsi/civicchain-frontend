@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { getUserId } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -32,12 +33,14 @@ export default function ProfilePage() {
   const router = useRouter();
   const params = useParams();
   const userId = params?.id as string;
+  const myUserId = typeof window !== 'undefined' ? getUserId() : null;
 
   // Fetch user profile
   const { data: profileData, isLoading } = useQuery({
     queryKey: ["profile", userId],
     queryFn: async () => {
-      const endpoint = userId ? `/user/${userId}` : "/user/me";
+      // If viewing own profile, always use myUserId (UUID) for /user/{id}
+      const endpoint = myUserId && userId === myUserId ? `/user/${myUserId}` : `/user/${userId}`;
       const response = await clientApi.get(endpoint);
       return response.data;
     },

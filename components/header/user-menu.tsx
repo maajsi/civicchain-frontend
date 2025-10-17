@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { getUserId } from "@/lib/auth";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -18,6 +19,7 @@ export function UserMenu() {
   const router = useRouter();
 
   if (!session?.user) return null;
+  const userId = typeof window !== 'undefined' ? getUserId() : null;
 
   return (
     <DropdownMenu>
@@ -39,7 +41,7 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push(`/profile/${session.user.id}`)}>
+        <DropdownMenuItem onClick={() => router.push(userId ? `/profile/${userId}` : "/profile") }>
           <User className="h-4 w-4 mr-2" />
           Profile & Reputation
         </DropdownMenuItem>
