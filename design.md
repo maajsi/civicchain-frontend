@@ -268,7 +268,7 @@ export function FABCreateIssue({ onClick }: FABCreateIssueProps) {
 ├─────────────────────────────────────────────────────┤
 │                                                     │
 │ Welcome back!                                       │
-│ Here are the civic issues near you                  │
+│ These are the civic issues near you                 │
 │                                                     │
 │ [Search Bar........................] [List][Map][⚙]│
 │                                                     │
@@ -346,7 +346,7 @@ export default function HomePage() {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">Welcome back!</h2>
-          <p className="text-muted-foreground">Here are the civic issues near you</p>
+          <p className="text-muted-foreground">These are the civic issues near you</p>
         </div>
 
         <SearchFilterBar

@@ -7,7 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { useAppStore } from "@/store/app-store";
 import clientApi from "@/lib/client-api";
-import { authenticateWithBackend } from "@/lib/auth";
+import { authenticateWithBackend, getUserRole } from "@/lib/auth";
 import { toast } from "sonner";
 
 import { IssueCard } from "@/components/issues/issue-card";
@@ -32,6 +32,21 @@ export default function UsersPage() {
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [isAuthenticating, setIsAuthenticating] = useState(true);
 
+  // 🚨 TEMPORARY: Force government role for testing - REMOVE THIS IN PRODUCTION
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('civicchain_user_role', 'government');
+    }
+  }, []);
+
+  // Immediate redirect check for government users
+  useEffect(() => {
+    const userRole = getUserRole();
+    if (userRole === 'government' && status === 'authenticated') {
+      router.push('/admin');
+    }
+  }, [router, status]);
+
   // Authenticate with backend when session is available (only run once)
   useEffect(() => {
     let isMounted = true;
@@ -45,6 +60,14 @@ export default function UsersPage() {
           if (!isMounted) return;
           if (response.success) {
             console.log("Backend authentication successful:", response);
+            
+            // Check user role and redirect if government user
+            const userRole = getUserRole();
+            if (userRole === 'government') {
+              router.push('/admin');
+              return;
+            }
+            
             if (response.is_new) {
               toast.success("Welcome to CivicChain! 🎉");
             } else {
@@ -212,6 +235,20 @@ export default function UsersPage() {
         <div className="mb-6 sm:mb-8 animate-fade-in-up">
           <h2 className="text-3xl sm:text-4xl font-bold mb-2 tracking-tight">Welcome back!</h2>
           <p className="text-base sm:text-lg text-muted-foreground">Here are the civic issues near you</p>
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8 animate-fade-in-up text-center">
+          <h2 className="text-5xl md:text-6xl font-extrabold mb-3 tracking-tight bg-gradient-to-r from-primary via-chart-2 to-primary bg-clip-text text-transparent">
+            Welcome back!
+          </h2>
+          <p className="text-xl md:text-2xl text-muted-foreground font-medium">
+            Here are the civic issues near you
+          </p>
+          <div className="mt-4 flex items-center justify-center gap-2 text-muted-foreground">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+            <span className="text-sm font-medium">{coordinates ? "Hyderabad, Telangana" : "Loading location..."}</span>
+          </div>
         </div>
 
         <div className="animate-fade-in-up animation-delay-200">
