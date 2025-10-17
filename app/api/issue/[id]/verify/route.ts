@@ -39,7 +39,7 @@ export async function POST(
     let status = 500;
     if (typeof error === "object" && error !== null) {
       // Try to extract axios error response
-      const err = error as any;
+      const err = error as { response?: { data?: { error?: string }; status?: number } };
       if (err.response?.data?.error) {
         message = err.response.data.error;
       }

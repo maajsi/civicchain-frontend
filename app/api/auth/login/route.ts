@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../[...nextauth]/route'
 import jwt from 'jsonwebtoken'
@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken'
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://152.42.157.189:3000'
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET
 
-export async function POST(_: NextRequest) {
+export async function POST() {
   try {
     const session = await getServerSession(authOptions)
     

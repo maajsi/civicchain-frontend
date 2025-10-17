@@ -11,6 +11,7 @@ import { useState, lazy, Suspense } from "react";
 import { toast } from "sonner";
 import { useDropzone } from "react-dropzone";
 import { Upload, Camera, Check, MapPin } from "lucide-react";
+import Image from "next/image";
 import clientApi from "@/lib/client-api";
 import { getUserId } from "@/lib/auth";
 import { useGeolocation } from "@/hooks/use-geolocation";
@@ -70,7 +71,7 @@ export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalP
       setSelectedCategory(response.data.suggested_category || null);
       setImageUrl(response.data.image_url);
       setStep(STEPS.CONFIRM);
-    } catch (error) {
+    } catch {
       toast.error("AI classification failed. Please select category manually.");
       setStep(STEPS.CONFIRM);
     }
@@ -91,7 +92,7 @@ export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalP
       toast.success("Issue reported successfully!");
       resetForm();
       onSuccess();
-    } catch (error) {
+    } catch {
       toast.error("Failed to report issue");
     } finally {
       setIsSubmitting(false);
@@ -302,9 +303,11 @@ function DescriptionStep({
     <div className="space-y-6">
       <div className="flex gap-4">
         {imagePreview && (
-          <img
+          <Image
             src={imagePreview}
             alt="Preview"
+            width={128}
+            height={128}
             className="w-32 h-32 object-cover rounded-lg"
           />
         )}
@@ -422,9 +425,11 @@ function ReviewStep({
 
       <Card className="p-4">
         {data.imagePreview && (
-          <img
+          <Image
             src={data.imagePreview}
             alt="Issue"
+            width={400}
+            height={192}
             className="w-full h-48 object-cover rounded-lg mb-4"
           />
         )}

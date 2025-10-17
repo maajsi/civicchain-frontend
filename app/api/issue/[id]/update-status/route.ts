@@ -15,7 +15,7 @@ export async function POST(
     const contentType = request.headers.get("content-type");
     
     let body;
-    let headers: Record<string, string> = {
+    const headers: Record<string, string> = {
       ...(token && { Authorization: token }),
     };
 
