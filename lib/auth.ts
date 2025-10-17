@@ -8,9 +8,10 @@ export async function authenticateWithBackend() {
     // Call our Next.js API route which will generate and send the JWT
     const response = await axios.post('/api/auth/login')
     if (response.data.success && response.data.jwt_token && response.data.user?.user_id) {
-      // Store the JWT token and user_id for future requests
+      // Store the JWT token, user_id, and role for future requests
       setAuthToken(response.data.jwt_token)
       setUserId(response.data.user.user_id)
+      setUserRole(response.data.user.role || 'citizen')
       return response.data
     }
     throw new Error('Authentication failed')
@@ -49,5 +50,26 @@ export function getAuthToken(): string | null {
 export function removeAuthToken() {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('civicchain_token')
+  }
+}
+
+export function setUserRole(role: string) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('civicchain_user_role', role)
+  }
+}
+
+export function getUserRole(): string | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('civicchain_user_role')
+  }
+  return null
+}
+
+export function clearAuthData() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('civicchain_token')
+    localStorage.removeItem('civicchain_user_id')
+    localStorage.removeItem('civicchain_user_role')
   }
 }
