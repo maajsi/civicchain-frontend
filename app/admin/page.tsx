@@ -279,8 +279,8 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
   ];
 
   const filteredIssues = statusFilter === "all" 
-    ? mockIssues 
-    : mockIssues.filter(issue => issue.status === statusFilter);
+    ? mockIssues.filter(issue => issue.status !== "resolved") // Exclude resolved issues
+    : mockIssues.filter(issue => issue.status === statusFilter && issue.status !== "resolved");
 
   return (
     <div className="space-y-6">
@@ -355,13 +355,6 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
         >
           In Progress
         </Button>
-        <Button 
-          variant={statusFilter === "resolved" ? "default" : "outline"}
-          onClick={() => setStatusFilter("resolved")}
-          className="transition-all duration-300"
-        >
-          Resolved
-        </Button>
       </div>
 
       {/* Issues Table */}
@@ -370,9 +363,6 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
           <table className="w-full">
             <thead className="bg-muted/50">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
-                  <input type="checkbox" className="rounded" />
-                </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">ISSUE</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">STATUS</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">PRIORITY</th>
@@ -387,9 +377,6 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
                   className="hover:bg-muted/30 transition-colors duration-200 animate-fade-in-up"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <td className="px-6 py-4">
-                    <input type="checkbox" className="rounded" />
-                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-4">
                       <img 
@@ -478,243 +465,311 @@ function IssuesTab({ issues, stats }: { issues: any[]; stats: any }) {
 
 // Analytics Tab Component
 function AnalyticsTab({ stats, categoryBreakdown }: { stats: any; categoryBreakdown: any[] }) {
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  
   return (
-    <div className="space-y-6">
-      {/* Top Stats Grid */}
+    <div className="space-y-8">
+      {/* Top Stats Grid with Claymorphism */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Total Issues</p>
-              <p className="text-3xl font-bold text-foreground">{stats.total_issues || 1250}</p>
-              <div className="flex items-center gap-1 mt-2">
-                <span className="text-green-500 text-sm font-medium flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+        {[
+          { label: "Total Issues", value: stats.total_issues || 1250, change: "+12%", trend: "up", icon: BarChart3, color: "blue", gradient: "from-blue-500 to-blue-600" },
+          { label: "Resolution Rate", value: "87%", change: "+8%", trend: "up", icon: CheckCircle2, color: "green", gradient: "from-green-500 to-emerald-600" },
+          { label: "Avg Response Time", value: "3.2d", change: "-3%", trend: "down", icon: Clock, color: "purple", gradient: "from-purple-500 to-violet-600" },
+          { label: "Citizen Satisfaction", value: "4.3/5", change: "+5%", trend: "up", icon: AlertCircle, color: "orange", gradient: "from-orange-500 to-amber-600" }
+        ].map((stat, index) => (
+          <div
+            key={stat.label}
+            onMouseEnter={() => setHoveredCard(stat.label)}
+            onMouseLeave={() => setHoveredCard(null)}
+            className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-card/80 to-secondary/30 p-6 shadow-xl backdrop-blur-sm border border-border/50 transition-all duration-500 hover:scale-105 hover:shadow-2xl animate-fade-in-up ${
+              hoveredCard === stat.label ? "ring-2 ring-primary/50" : ""
+            }`}
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            {/* Animated Background Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-chart-2/5 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <div className="relative z-10 flex flex-col">
+              <div className="flex items-start justify-between mb-4">
+                <div className={`p-3 rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg transform transition-transform duration-300 ${hoveredCard === stat.label ? "scale-110 rotate-3" : ""}`}>
+                  <stat.icon className="w-6 h-6 text-white" />
+                </div>
+                <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                  stat.trend === "up" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"
+                }`}>
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d={stat.trend === "up" ? "M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" : "M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z"} clipRule="evenodd" />
                   </svg>
-                  12%
-                </span>
-                <span className="text-xs text-muted-foreground">vs last month</span>
+                  {stat.change}
+                </div>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground mb-2 font-medium">{stat.label}</p>
+                <p className="text-4xl font-bold text-foreground mb-1 transition-all duration-300">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">vs last month</p>
               </div>
             </div>
-            <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center">
-              <BarChart3 className="w-8 h-8 text-blue-500" />
-            </div>
+            
+            {/* Shimmer Effect on Hover */}
+            {hoveredCard === stat.label && (
+              <div className="absolute inset-0 animate-shimmer"></div>
+            )}
           </div>
-        </Card>
+        ))}
+      </div>
 
-        <Card className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Resolution Rate</p>
-              <p className="text-3xl font-bold text-foreground">87%</p>
-              <div className="flex items-center gap-1 mt-2">
-                <span className="text-green-500 text-sm font-medium flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
-                  8%
-                </span>
-                <span className="text-xs text-muted-foreground">vs last month</span>
+      {/* Radial Progress Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[
+          { label: "Open Issues", value: 32, total: 100, color: "text-red-500", strokeColor: "#ef4444", strokeColorEnd: "#f43f5e" },
+          { label: "In Progress", value: 48, total: 100, color: "text-blue-500", strokeColor: "#3b82f6", strokeColorEnd: "#4f46e5" },
+          { label: "Priority High", value: 24, total: 100, color: "text-orange-500", strokeColor: "#f97316", strokeColorEnd: "#f59e0b" },
+          { label: "Citizen Engagement", value: 76, total: 100, color: "text-green-500", strokeColor: "#10b981", strokeColorEnd: "#059669" }
+        ].map((item, index) => (
+          <div
+            key={item.label}
+            className="relative rounded-3xl bg-gradient-to-br from-card/90 via-background/50 to-secondary/20 p-6 shadow-xl border border-border/50 backdrop-blur-sm hover:scale-105 transition-all duration-500 animate-fade-in-up"
+            style={{ animationDelay: `${index * 150}ms` }}
+          >
+            <div className="flex flex-col items-center">
+              <div className="relative w-32 h-32 mb-4">
+                {/* Background Circle */}
+                <svg className="w-full h-full transform -rotate-90">
+                  <defs>
+                    <linearGradient id={`radial-gradient-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor={item.strokeColor} />
+                      <stop offset="100%" stopColor={item.strokeColorEnd} />
+                    </linearGradient>
+                  </defs>
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke="currentColor"
+                    strokeWidth="12"
+                    fill="none"
+                    className="text-muted/30"
+                  />
+                  {/* Animated Progress Circle */}
+                  <circle
+                    cx="64"
+                    cy="64"
+                    r="56"
+                    stroke={`url(#radial-gradient-${index})`}
+                    strokeWidth="12"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeDasharray={`${(item.value / item.total) * 351.86} 351.86`}
+                    className="transition-all duration-1000 ease-out drop-shadow-lg"
+                  />
+                </svg>
+                {/* Center Value */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className={`text-3xl font-bold ${item.color}`}>{item.value}%</span>
+                </div>
               </div>
-            </div>
-            <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center">
-              <CheckCircle2 className="w-8 h-8 text-green-500" />
+              <p className="text-sm font-semibold text-foreground text-center">{item.label}</p>
+              <p className="text-xs text-muted-foreground mt-1">Current status</p>
             </div>
           </div>
-        </Card>
-
-        <Card className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Avg Response Time</p>
-              <p className="text-3xl font-bold text-foreground">3.2d</p>
-              <div className="flex items-center gap-1 mt-2">
-                <span className="text-red-500 text-sm font-medium flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  3%
-                </span>
-                <span className="text-xs text-muted-foreground">vs last month</span>
-              </div>
-            </div>
-            <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center">
-              <Clock className="w-8 h-8 text-purple-500" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Satisfaction Score</p>
-              <p className="text-3xl font-bold text-foreground">4.3/5</p>
-              <div className="flex items-center gap-1 mt-2">
-                <span className="text-green-500 text-sm font-medium flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                  </svg>
-                  5%
-                </span>
-                <span className="text-xs text-muted-foreground">vs last month</span>
-              </div>
-            </div>
-            <div className="w-16 h-16 bg-orange-500/10 rounded-2xl flex items-center justify-center">
-              <svg className="w-8 h-8 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            </div>
-          </div>
-        </Card>
+        ))}
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Issues by Category */}
-        <Card className="p-6 hover:shadow-lg transition-shadow">
+        {/* Issues by Category - Enhanced */}
+        <div className="rounded-3xl bg-gradient-to-br from-card/90 via-background/50 to-secondary/20 p-8 shadow-xl border border-border/50 backdrop-blur-sm hover:shadow-2xl transition-all duration-500">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-              </svg>
+            <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-chart-2">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                </svg>
+              </div>
               Issues by Category
             </h3>
-            <button className="text-sm text-primary hover:underline">View Details</button>
+            <button className="text-sm text-primary hover:underline font-medium">View All</button>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-5">
             {[
-              { name: "Potholes", count: 342, percentage: 32, color: "bg-orange-500" },
-              { name: "Garbage", count: 289, percentage: 27, color: "bg-green-500" },
-              { name: "Streetlights", count: 187, percentage: 17, color: "bg-yellow-500" },
-              { name: "Water", count: 156, percentage: 15, color: "bg-blue-500" },
-              { name: "Other", count: 98, percentage: 9, color: "bg-gray-500" }
+              { name: "Potholes", count: 342, percentage: 32, color: "bg-orange-500", textColor: "text-orange-500" },
+              { name: "Garbage", count: 289, percentage: 27, color: "bg-green-500", textColor: "text-green-500" },
+              { name: "Streetlights", count: 187, percentage: 17, color: "bg-yellow-500", textColor: "text-yellow-500" },
+              { name: "Water", count: 156, percentage: 15, color: "bg-blue-500", textColor: "text-blue-500" },
+              { name: "Other", count: 98, percentage: 9, color: "bg-gray-500", textColor: "text-gray-500" }
             ].map((category, index) => (
-              <div key={category.name} className="space-y-2 animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+              <div key={category.name} className="space-y-3 group animate-fade-in-up hover:scale-[1.02] transition-transform duration-300" style={{ animationDelay: `${index * 100}ms` }}>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${category.color}`}></div>
-                    <span className="text-sm font-medium text-foreground">{category.name}</span>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-4 h-4 rounded-full ${category.color} animate-pulse`}></div>
+                    <span className="text-sm font-semibold text-foreground">{category.name}</span>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-muted-foreground">{category.count}</span>
-                    <span className="text-sm font-semibold text-foreground w-12 text-right">{category.percentage}%</span>
+                  <div className="flex items-center gap-6">
+                    <span className="text-sm text-muted-foreground font-medium">{category.count} issues</span>
+                    <span className={`text-base font-bold ${category.textColor} w-14 text-right`}>{category.percentage}%</span>
                   </div>
                 </div>
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <div className="relative w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
                   <div 
-                    className={`h-full ${category.color} transition-all duration-1000 ease-out`}
-                    style={{ width: `${category.percentage}%` }}
-                  ></div>
+                    className={`absolute h-full ${category.color} rounded-full transition-all duration-1000 ease-out shadow-lg`}
+                    style={{ 
+                      width: `${category.percentage}%`,
+                      boxShadow: `0 0 10px ${category.color}`
+                    }}
+                  >
+                    <div className="absolute inset-0 animate-shimmer"></div>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
-        </Card>
+        </div>
 
-        {/* Issue Trends */}
-        <Card className="p-6 hover:shadow-lg transition-shadow">
+        {/* Issue Trends - Enhanced */}
+        <div className="rounded-3xl bg-gradient-to-br from-card/90 via-background/50 to-secondary/20 p-8 shadow-xl border border-border/50 backdrop-blur-sm hover:shadow-2xl transition-all duration-500">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-              </svg>
-              Issue Trends Over Time
+            <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-chart-3 to-chart-4">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+              </div>
+              Monthly Issue Trends
             </h3>
-            <button className="text-sm text-primary hover:underline">View Details</button>
+            <button className="text-sm text-primary hover:underline font-medium">View All</button>
           </div>
-          <div className="h-64 flex items-end justify-between gap-2">
+          <div className="h-64 flex items-end justify-between gap-3">
             {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"].map((month, index) => {
               const heights = [40, 65, 45, 80, 60, 70, 55];
+              const gradients = [
+                "from-chart-1 to-chart-2",
+                "from-chart-2 to-chart-3",
+                "from-chart-3 to-chart-4",
+                "from-chart-4 to-chart-5",
+                "from-chart-5 to-primary",
+                "from-primary to-chart-1",
+                "from-chart-1 to-chart-3"
+              ];
               return (
-                <div key={month} className="flex-1 flex flex-col items-center gap-2 animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
-                  <div className="w-full bg-gradient-to-t from-primary to-chart-2 rounded-t-lg transition-all duration-1000 hover:scale-105" style={{ height: `${heights[index]}%` }}></div>
-                  <span className="text-xs text-muted-foreground">{month}</span>
+                <div key={month} className="flex-1 flex flex-col items-center gap-3 group cursor-pointer animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+                  <div className="relative w-full rounded-t-2xl overflow-hidden shadow-lg group-hover:shadow-2xl transition-all duration-300" style={{ height: `${heights[index]}%` }}>
+                    <div className={`absolute inset-0 bg-gradient-to-t ${gradients[index]} group-hover:scale-105 transition-transform duration-300`}>
+                      <div className="absolute inset-0 animate-shimmer"></div>
+                    </div>
+                    {/* Tooltip on Hover */}
+                    <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                      <div className="bg-foreground text-background px-3 py-1 rounded-lg text-xs font-semibold shadow-xl">
+                        {Math.round(heights[index] * 1.5)} issues
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-xs text-muted-foreground font-medium group-hover:text-foreground transition-colors">{month}</span>
                 </div>
               );
             })}
           </div>
-        </Card>
+        </div>
       </div>
 
-      {/* Resolution Rates by Ward */}
-      <Card className="p-6 hover:shadow-lg transition-shadow">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            Resolution Rates by Ward
-          </h3>
-          <select className="px-4 py-2 border rounded-lg text-sm">
-            <option>All Wards</option>
-            <option>Ward 1-4</option>
-            <option>Ward 5-8</option>
-          </select>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { ward: "Ward 1", rate: 87, color: "bg-blue-500" },
-            { ward: "Ward 2", rate: 92, color: "bg-green-500" },
-            { ward: "Ward 3", rate: 78, color: "bg-yellow-500" },
-            { ward: "Ward 4", rate: 85, color: "bg-blue-500" },
-            { ward: "Ward 5", rate: 94, color: "bg-green-500" },
-            { ward: "Ward 6", rate: 81, color: "bg-blue-500" },
-            { ward: "Ward 7", rate: 88, color: "bg-blue-500" },
-            { ward: "Ward 8", rate: 76, color: "bg-orange-500" }
-          ].map((ward, index) => (
-            <Card key={ward.ward} className="p-4 hover:shadow-md transition-all duration-300 hover:-translate-y-1 animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
-              <div className="flex flex-col items-center text-center">
-                <p className="text-sm text-muted-foreground mb-2">{ward.ward}</p>
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${ward.color} text-white font-bold text-xl mb-2`}>
-                  {ward.rate}%
-                </div>
-                <div className="w-full h-2 bg-muted rounded-full overflow-hidden mt-2">
-                  <div className={`h-full ${ward.color} transition-all duration-1000`} style={{ width: `${ward.rate}%` }}></div>
-                </div>
+      {/* Citizen Feedback - Coming Soon */}
+      <div className="relative rounded-3xl bg-gradient-to-br from-card/90 via-background/50 to-secondary/20 p-8 shadow-xl border border-border/50 backdrop-blur-sm overflow-hidden">
+        {/* Blurred Content */}
+        <div className="blur-sm pointer-events-none select-none">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600">
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd" />
+                </svg>
               </div>
-            </Card>
-          ))}
-        </div>
-      </Card>
-
-      {/* Citizen Feedback */}
-      <Card className="p-6 hover:shadow-lg transition-shadow">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd" />
-            </svg>
-            Citizen Feedback
-          </h3>
-          <span className="text-sm text-muted-foreground">Average NPS: <span className="text-green-500 font-semibold">+42</span></span>
-        </div>
-        <div className="space-y-4">
-          {[
-            { issue: "Pothole on Main Street", ward: "Ward 5", date: "2024-01-18", rating: 5, feedback: "Excellent work! The pothole was fixed within 3 days. Very satisfied with the response time." },
-            { issue: "Garbage overflow", ward: "Ward 3", date: "2024-01-17", rating: 4, feedback: "Good work, but took a bit longer than expected. Overall happy with the resolution." },
-            { issue: "Street light repair", ward: "Ward 7", date: "2024-01-16", rating: 3, feedback: "Issue resolved but communication could have been better." }
-          ].map((feedback, index) => (
-            <div key={index} className="p-4 border rounded-lg hover:bg-muted/30 transition-colors animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <p className="font-semibold text-foreground">{feedback.issue}</p>
-                  <p className="text-sm text-muted-foreground">{feedback.ward} • {feedback.date}</p>
-                </div>
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className={`w-4 h-4 ${i < feedback.rating ? "text-yellow-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">{feedback.feedback}</p>
+              Citizen Feedback
+            </h3>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20">
+              <span className="text-sm text-muted-foreground">Average NPS:</span>
+              <span className="text-lg text-green-600 font-bold">+42</span>
             </div>
-          ))}
+          </div>
+          <div className="space-y-4">
+            {[
+              { issue: "Pothole on Main Street", ward: "Ward 5", date: "2024-01-18", rating: 5, feedback: "Excellent work! The pothole was fixed within 3 days. Very satisfied with the response time.", color: "from-green-500/10 to-emerald-500/10" },
+              { issue: "Garbage overflow", ward: "Ward 3", date: "2024-01-17", rating: 4, feedback: "Good work, but took a bit longer than expected. Overall happy with the resolution.", color: "from-blue-500/10 to-cyan-500/10" },
+              { issue: "Street light repair", ward: "Ward 7", date: "2024-01-16", rating: 3, feedback: "Issue resolved but communication could have been better.", color: "from-yellow-500/10 to-orange-500/10" }
+            ].map((feedback, index) => (
+              <div 
+                key={index} 
+                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${feedback.color} p-5 border border-border/30`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="font-bold text-foreground text-base mb-1">{feedback.issue}</p>
+                    <p className="text-xs text-muted-foreground flex items-center gap-2">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                      </svg>
+                      {feedback.ward}
+                      <span className="mx-1">•</span>
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                      </svg>
+                      {feedback.date}
+                    </p>
+                  </div>
+                  <div className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <svg key={i} className={`w-5 h-5 ${i < feedback.rating ? "text-yellow-500" : "text-gray-300"}`} fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                </div>
+                <p className="text-sm text-foreground/80 leading-relaxed">{feedback.feedback}</p>
+              </div>
+            ))}
+          </div>
+          <button className="w-full mt-4 py-3 text-sm text-primary rounded-xl font-semibold">
+            View All Feedback →
+          </button>
         </div>
-        <button className="w-full mt-4 py-3 text-sm text-primary hover:bg-primary/5 rounded-lg transition-colors font-medium">
-          View All Feedback
-        </button>
-      </Card>
+
+        {/* Coming Soon Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-md">
+          <div className="text-center space-y-6 max-w-md px-8 animate-fade-in-up">
+            {/* Animated Icon */}
+            <div className="relative mx-auto w-24 h-24 mb-4">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-chart-2 animate-pulse"></div>
+              <div className="absolute inset-2 rounded-full bg-background flex items-center justify-center">
+                <svg className="w-12 h-12 text-primary animate-float" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Coming Soon Badge */}
+            <div className="inline-block">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary via-chart-2 to-primary bg-[length:200%_100%] animate-gradient blur-xl opacity-60"></div>
+                <div className="relative px-6 py-3 rounded-2xl bg-gradient-to-r from-primary to-chart-2 shadow-2xl">
+                  <span className="text-2xl font-bold text-white tracking-wide">COMING SOON</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-3">
+              <h4 className="text-xl font-bold text-foreground">Citizen Feedback Analytics</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Track and analyze citizen satisfaction ratings, NPS scores, and detailed feedback to improve service quality and response times.
+              </p>
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                </svg>
+                <span className="font-medium">Launching in Q4 2025</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Download Reports Section */}
       <Card className="p-8 bg-gradient-to-r from-primary to-chart-2 text-white hover:shadow-xl transition-all duration-300">
