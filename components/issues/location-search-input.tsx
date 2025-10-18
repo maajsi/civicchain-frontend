@@ -28,12 +28,22 @@ export function LocationSearchInput({
 
   // Debounced search
   useEffect(() => {
+    if (!query.trim()) {
+      clearSuggestions();
+      return;
+    }
+    
+    if (query.trim().length < 3) {
+      return;
+    }
+
     const timer = setTimeout(() => {
       searchLocation(query);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query, searchLocation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -58,7 +68,9 @@ export function LocationSearchInput({
   const handleSelectLocation = (suggestion: LocationSuggestion) => {
     const lat = parseFloat(suggestion.lat);
     const lng = parseFloat(suggestion.lon);
-    onLocationSelect(lat, lng, suggestion.display_name);
+    // Use short_name if available, otherwise fall back to display_name
+    const displayName = suggestion.short_name || suggestion.display_name;
+    onLocationSelect(lat, lng, displayName);
     setQuery("");
     clearSuggestions();
     setShowSuggestions(false);
@@ -124,7 +136,7 @@ export function LocationSearchInput({
                 <MapPin className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {suggestion.address.road || suggestion.address.city}
+                    {suggestion.short_name || suggestion.address.road || suggestion.address.city || "Location"}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {suggestion.display_name}

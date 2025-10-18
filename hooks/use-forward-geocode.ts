@@ -2,6 +2,7 @@ import { useState } from "react";
 
 export interface LocationSuggestion {
   display_name: string;
+  short_name?: string; // Add short name field
   lat: string;
   lon: string;
   address: {
@@ -10,6 +11,9 @@ export interface LocationSuggestion {
     country?: string;
     road?: string;
     neighbourhood?: string;
+    suburb?: string;
+    town?: string;
+    village?: string;
   };
 }
 
@@ -38,7 +42,39 @@ export function useForwardGeocode() {
 
       if (response.ok) {
         const data = await response.json();
-        setSuggestions(data);
+        
+        // Add shortened display names to each suggestion
+        const enhancedData = data.map((item: LocationSuggestion) => {
+          const parts = [];
+          
+          // Priority 1: Neighbourhood or suburb
+          if (item.address.neighbourhood) {
+            parts.push(item.address.neighbourhood);
+          } else if (item.address.suburb) {
+            parts.push(item.address.suburb);
+          } else if (item.address.road) {
+            parts.push(item.address.road);
+          }
+          
+          // Priority 2: City
+          if (item.address.city) {
+            parts.push(item.address.city);
+          } else if (item.address.town) {
+            parts.push(item.address.town);
+          } else if (item.address.village) {
+            parts.push(item.address.village);
+          }
+          
+          // Create short name (max 2 parts)
+          const shortName = parts.slice(0, 2).join(", ") || item.display_name;
+          
+          return {
+            ...item,
+            short_name: shortName,
+          };
+        });
+        
+        setSuggestions(enhancedData);
       } else {
         console.error("Forward geocoding failed:", response.statusText);
         setSuggestions([]);

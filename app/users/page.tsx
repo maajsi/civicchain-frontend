@@ -53,7 +53,6 @@ export default function UsersPage() {
   );
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const searchQuery: string = "";
   // const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -153,7 +152,6 @@ export default function UsersPage() {
     queryKey: ["issues", 
       searchLocation?.lat || coordinates?.lat, 
       searchLocation?.lng || coordinates?.lng, 
-      searchQuery, 
       selectedTypes, 
       selectedStatuses, 
       radius
@@ -408,12 +406,6 @@ export default function UsersPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {issues
-                .filter((issue: IssueFromAPI) =>
-                  searchQuery
-                    ? issue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      issue.region?.toLowerCase().includes(searchQuery.toLowerCase())
-                    : true
-                )
                 .map((issue: IssueFromAPI, index: number) => {
                   // Map to full IssueCard type
                   const allowedCategories = ["other", "pothole", "garbage", "streetlight", "water"];

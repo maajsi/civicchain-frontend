@@ -51,28 +51,33 @@ export function useReverseGeocode(lat?: number, lng?: number): ReverseGeocodeRes
 
         const data = await response.json();
         
-        // Build a readable address from the response
+        // Build a short, readable address from the response
         let formattedAddress = "";
         
         if (data.address) {
           const parts = [];
           
-          // Add road/street
-          if (data.address.road) parts.push(data.address.road);
+          // Priority 1: Neighbourhood or suburb (most specific relevant area)
+          if (data.address.neighbourhood) {
+            parts.push(data.address.neighbourhood);
+          } else if (data.address.suburb) {
+            parts.push(data.address.suburb);
+          } else if (data.address.road) {
+            // Only use road if no neighbourhood/suburb available
+            parts.push(data.address.road);
+          }
           
-          // Add neighborhood or suburb
-          if (data.address.neighbourhood) parts.push(data.address.neighbourhood);
-          else if (data.address.suburb) parts.push(data.address.suburb);
+          // Priority 2: City (always include for context)
+          if (data.address.city) {
+            parts.push(data.address.city);
+          } else if (data.address.town) {
+            parts.push(data.address.town);
+          } else if (data.address.village) {
+            parts.push(data.address.village);
+          }
           
-          // Add city
-          if (data.address.city) parts.push(data.address.city);
-          else if (data.address.town) parts.push(data.address.town);
-          else if (data.address.village) parts.push(data.address.village);
-          
-          // Add state if available
-          if (data.address.state) parts.push(data.address.state);
-          
-          formattedAddress = parts.join(", ");
+          // Limit to max 2 parts for brevity
+          formattedAddress = parts.slice(0, 2).join(", ");
         }
         
         const finalAddress = formattedAddress || data.display_name || "Unknown location";
