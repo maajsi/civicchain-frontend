@@ -17,6 +17,7 @@ export async function GET(request: NextRequest) {
     const lng = searchParams.get('lng');
     const radius = searchParams.get('radius');
     const category = searchParams.get('category');
+    const status = searchParams.get('status');
     
     // Build query params - don't send status filter if backend doesn't support it
     const params = new URLSearchParams();
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
     if (lng) params.append('lng', lng);
     if (radius) params.append('radius', radius);
     if (category) params.append('category', category);
+    if (status) params.append('status', status);
 
     const response = await fetch(`${API_BASE_URL}/issues?${params.toString()}`, {
       headers: {
