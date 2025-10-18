@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 import { getUserRole } from "@/lib/auth";
 import { toast } from "sonner";
+import { showTxToast } from "@/lib/toast";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -76,10 +77,7 @@ export default function IssueDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["issue", issueId] });
       console.log("Verify response data:", data);
       const txHash = data?.blockchain_tx_hash || data?.transaction_hash;
-      const explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
-      toast.success("Issue verified successfully! ✓", {
-        description: explorerLink ? `View on Solana Explorer: ${explorerLink}` : undefined,
-      });
+      showTxToast("Issue verified successfully! ✓", txHash);
     },
     onError: (error: unknown) => {
       let errorMsg = "Failed to verify issue";

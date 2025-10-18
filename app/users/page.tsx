@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGeolocation } from "@/hooks/use-geolocation";
 import { useAppStore } from "@/store/app-store";
 import clientApi from "@/lib/client-api";
+import { showTxToast } from "@/lib/toast";
 import { authenticateWithBackend, getUserRole } from "@/lib/auth";
 import { toast } from "sonner";
 
@@ -188,10 +189,8 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
       console.log("Upvote response data:", data);
       const txHash = data?.blockchain_tx_hash || data?.issue?.blockchain_tx_hash || data?.transaction_hash;
-      const explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
-      toast.success("Upvoted successfully! 🎉", {
-        description: explorerLink ? `View on Solana Explorer: ${explorerLink}` : undefined,
-      });
+      // standardized toast
+      showTxToast("Upvoted successfully! 🎉", txHash);
     },
     onError: () => {
       toast.error("Failed to upvote");
@@ -209,10 +208,7 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
       console.log("Downvote response data:", data);
       const txHash = data?.blockchain_tx_hash || data?.issue?.blockchain_tx_hash || data?.transaction_hash;
-      const explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
-      toast.success("Downvoted! 👎", {
-        description: explorerLink ? `View on Solana Explorer: ${explorerLink}` : undefined,
-      });
+      showTxToast("Downvoted! 👎", txHash);
     },
     onError: () => {
       toast.error("Failed to downvote");
@@ -460,7 +456,6 @@ export default function UsersPage() {
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ["issues"] });
           setCreateModalOpen(false);
-          toast.success("Issue reported successfully! 🎉");
         }}
       />
     </div>

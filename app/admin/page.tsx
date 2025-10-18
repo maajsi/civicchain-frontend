@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import clientApi from "@/lib/client-api";
 import { getUserRole } from "@/lib/auth";
 import { toast } from "sonner";
+import { showTxToast } from "@/lib/toast";
 import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 import { 
   FileText, 
@@ -716,9 +717,7 @@ function UpdateStatusButton({ issueId, currentStatus }: { issueId: string; curre
       }
     },
     onSuccess: (data) => {
-      toast.success("Status updated successfully!", {
-        description: data.blockchain_tx_hash ? `Blockchain TX: ${data.blockchain_tx_hash.substring(0, 20)}...` : undefined,
-      });
+      showTxToast("Status updated successfully!", data?.blockchain_tx_hash || data?.transaction_hash);
       queryClient.invalidateQueries({ queryKey: ["admin-dashboard"] });
       setIsOpen(false);
       setProofImage(null);

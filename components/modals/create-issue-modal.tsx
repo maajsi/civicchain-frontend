@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useState, lazy, Suspense } from "react";
 import { toast } from "sonner";
+import { showTxToast } from "@/lib/toast";
 import { useDropzone } from "react-dropzone";
 import { Upload, Camera, Check, MapPin } from "lucide-react";
 import Image from "next/image";
@@ -81,7 +82,7 @@ export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalP
     setIsSubmitting(true);
     try {
       const user_id = typeof window !== 'undefined' ? getUserId() : null;
-      await clientApi.post("/issues/report", {
+      const response = await clientApi.post("/issues/report", {
         image_url: imageUrl,
         description,
         category: selectedCategory,
@@ -89,7 +90,8 @@ export function CreateIssueModal({ open, onClose, onSuccess }: CreateIssueModalP
         lng: location.lng,
         user_id,
       });
-      toast.success("Issue reported successfully!");
+      const txHash = response?.data?.blockchain_tx_hash || response?.data?.transaction_hash;
+      showTxToast("Issue reported successfully! 🎉", txHash);
       resetForm();
       onSuccess();
     } catch {
