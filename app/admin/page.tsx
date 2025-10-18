@@ -16,7 +16,9 @@ import {
   AlertCircle,
   Clock,
   CheckCircle2,
-  TrendingUp
+  TrendingUp,
+  Menu,
+  X
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -61,6 +63,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("issues");
   const [timeFilter] = useState("This Week");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
 
   // Check if user is authorized
@@ -108,27 +111,51 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen bg-background">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 border-r bg-card flex flex-col">
+      <aside className={`
+        fixed lg:static inset-y-0 left-0 z-50
+        w-64 border-r bg-card flex flex-col
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
         {/* Logo */}
         <div className="p-6 border-b">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-chart-2 rounded-2xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-              </svg>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-chart-2 rounded-2xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-foreground">CivicChain</h2>
+                <p className="text-xs text-muted-foreground">Admin Panel</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">CivicChain</h2>
-              <p className="text-xs text-muted-foreground">Admin Panel</p>
-            </div>
+            <button 
+              className="lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="w-6 h-6" />
+            </button>
           </div>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2">
           <button
-            onClick={() => setActiveTab("issues")}
+            onClick={() => {
+              setActiveTab("issues");
+              setSidebarOpen(false);
+            }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "issues"
                 ? "bg-primary/10 text-primary font-medium"
@@ -139,7 +166,10 @@ export default function AdminDashboard() {
             Issues
           </button>
           <button
-            onClick={() => setActiveTab("analytics")}
+            onClick={() => {
+              setActiveTab("analytics");
+              setSidebarOpen(false);
+            }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
               activeTab === "analytics"
                 ? "bg-primary/10 text-primary font-medium"
@@ -155,18 +185,26 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="border-b bg-card sticky top-0 z-10">
-          <div className="px-8 py-4">
+        <header className="border-b bg-card sticky top-0 z-30">
+          <div className="px-4 md:px-8 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary to-chart-2 rounded-2xl flex items-center justify-center">
+              <div className="flex items-center gap-3 md:gap-4">
+                {/* Mobile Menu Button */}
+                <button 
+                  className="lg:hidden"
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
+                
+                <div className="hidden md:flex w-12 h-12 bg-gradient-to-br from-primary to-chart-2 rounded-2xl items-center justify-center">
                   <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-foreground">CivicChain Admin</h1>
-                  <p className="text-sm text-muted-foreground">Greater Hyderabad Municipal Corporation</p>
+                  <h1 className="text-xl md:text-2xl font-bold text-foreground">CivicChain Admin</h1>
+                  <p className="text-xs md:text-sm text-muted-foreground hidden sm:block">Greater Hyderabad Municipal Corporation</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
@@ -177,32 +215,32 @@ export default function AdminDashboard() {
         </header>
 
         {/* Main Content Area */}
-        <div className="flex-1 overflow-auto p-8">
-          <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex-1 overflow-auto p-4 md:p-8">
+          <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
             {/* Content Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-3xl font-bold text-foreground">
+                <h2 className="text-2xl md:text-3xl font-bold text-foreground">
                   {activeTab === "issues" ? "Issues Management" : "Analytics Dashboard"}
                 </h2>
-                <p className="text-muted-foreground mt-1">
+                <p className="text-sm md:text-base text-muted-foreground mt-1">
                   {activeTab === "issues" 
                     ? "Manage and track all civic infrastructure issues" 
                     : "Performance insights and trends"}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <button className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-muted transition-colors">
-                  <span className="text-sm font-medium">{timeFilter}</span>
+              <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto">
+                <button className="flex items-center gap-2 px-3 md:px-4 py-2 border rounded-lg hover:bg-muted transition-colors text-sm">
+                  <span className="font-medium">{timeFilter}</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span>
-                        <Button disabled className="flex items-center gap-2 opacity-60 cursor-not-allowed">
+                      <span className="flex-1 sm:flex-initial">
+                        <Button disabled className="w-full sm:w-auto flex items-center gap-2 opacity-60 cursor-not-allowed text-sm">
                           <Download className="w-4 h-4" />
-                          Export
+                          <span className="hidden sm:inline">Export</span>
                         </Button>
                       </span>
                     </TooltipTrigger>
@@ -216,12 +254,16 @@ export default function AdminDashboard() {
 
             {/* ISSUES TAB */}
             {activeTab === "issues" && (
-              <IssuesTab issues={dashboardData?.top_priority_issues || []} stats={stats} />
+              <div key="issues-tab">
+                <IssuesTab issues={dashboardData?.top_priority_issues || []} stats={stats} />
+              </div>
             )}
 
             {/* ANALYTICS TAB */}
             {activeTab === "analytics" && (
-              <AnalyticsTab stats={stats} categoryBreakdown={stats?.category_breakdown || []} />
+              <div key="analytics-tab">
+                <AnalyticsTab stats={stats} categoryBreakdown={stats?.category_breakdown || []} />
+              </div>
             )}
           </div>
         </div>
@@ -377,8 +419,8 @@ function IssuesTab({ issues, stats }: { issues: TopPriorityIssue[]; stats: Stats
         </Button>
       </div>
 
-      {/* Issues Table */}
-      <Card className="overflow-hidden">
+      {/* Issues Table - Desktop */}
+      <Card className="overflow-hidden hidden lg:block">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-muted/50">
@@ -421,6 +463,33 @@ function IssuesTab({ issues, stats }: { issues: TopPriorityIssue[]; stats: Stats
           </div>
         </div>
       </Card>
+
+      {/* Issues Cards - Mobile */}
+      <div className="lg:hidden space-y-4">
+        {filteredIssues.length === 0 ? (
+          <Card className="p-8">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <AlertCircle className="w-12 h-12 text-muted-foreground/50" />
+              <p className="text-lg font-semibold text-muted-foreground">No issues found</p>
+              <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
+            </div>
+          </Card>
+        ) : (
+          <>
+            {filteredIssues.map((issue, index) => (
+              <IssueCard key={issue.id} issue={issue} index={index} />
+            ))}
+            <Card className="p-4 bg-muted/20">
+              <p className="text-sm text-muted-foreground text-center">
+                Showing {filteredIssues.length} of {apiIssues.length} top priority issues
+              </p>
+              <p className="text-xs text-muted-foreground text-center mt-1">
+                Total issues: {displayStats.total_issues}
+              </p>
+            </Card>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -528,6 +597,97 @@ function IssueRow({ issue, index }: { issue: IssueRowData; index: number }) {
   );
 }
 
+// Mobile Issue Card Component
+function IssueCard({ issue, index }: { issue: IssueRowData; index: number }) {
+  const { address } = useReverseGeocode(issue.lat, issue.lng);
+  const displayLocation = address !== "Unknown location" ? address : issue.region || `${issue.lat.toFixed(4)}, ${issue.lng.toFixed(4)}`;
+
+  return (
+    <Card 
+      className="p-4 hover:shadow-md transition-all duration-200 animate-fade-in-up"
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
+      <div className="space-y-4">
+        {/* Issue Header */}
+        <div className="flex gap-3">
+          <Image 
+            src={issue.image} 
+            alt={issue.title}
+            width={80}
+            height={80}
+            className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-foreground line-clamp-2">{issue.title}</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+              <span className="truncate">{displayLocation}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Row */}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <TrendingUp className="w-3 h-3 text-green-500" />
+            {issue.upvotes}
+          </span>
+          <span className="flex items-center gap-1">
+            <svg className="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+            {issue.downvotes}
+          </span>
+          <span className="ml-auto">
+            Reported by: <span className="font-medium text-foreground">{issue.reporter}</span>
+          </span>
+        </div>
+
+        {/* Status and Priority */}
+        <div className="flex items-center gap-3">
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+            issue.status === "open" 
+              ? "bg-red-500/10 text-red-600" 
+              : issue.status === "in-progress"
+              ? "bg-blue-500/10 text-blue-600"
+              : "bg-green-500/10 text-green-600"
+          }`}>
+            {issue.status === "open" && <AlertCircle className="w-3 h-3 flex-shrink-0" />}
+            {issue.status === "in-progress" && <Clock className="w-3 h-3 flex-shrink-0" />}
+            {issue.status === "resolved" && <CheckCircle2 className="w-3 h-3 flex-shrink-0" />}
+            <span className="capitalize">{issue.status.replace("-", " ")}</span>
+          </span>
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${
+            issue.priority >= 90 ? "bg-red-500 text-white" :
+            issue.priority >= 80 ? "bg-orange-500 text-white" :
+            "bg-yellow-500 text-white"
+          }`}>
+            {issue.priority}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2 pt-2 border-t">
+          <Link href={`/issue/${issue.id}`} className="flex-1">
+            <button className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-primary border border-primary/20 hover:bg-primary/10 rounded-lg transition-colors">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              View
+            </button>
+          </Link>
+          <div className="flex-1">
+            <UpdateStatusButton issueId={issue.id} currentStatus={issue.status} />
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 // Update Status Button Component
 function UpdateStatusButton({ issueId, currentStatus }: { issueId: string; currentStatus: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -583,7 +743,7 @@ function UpdateStatusButton({ issueId, currentStatus }: { issueId: string; curre
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors"
+        className="w-full lg:w-auto flex items-center justify-center gap-2 px-4 py-2 text-sm text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -592,7 +752,7 @@ function UpdateStatusButton({ issueId, currentStatus }: { issueId: string; curre
       </button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Update Issue Status</DialogTitle>
             <DialogDescription>
@@ -719,7 +879,7 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
   return (
     <div className="space-y-8">
       {/* Top Stats Grid with Claymorphism */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {[
           { label: "Total Issues", value: stats.total_issues || 0, valueType: "number", icon: BarChart3, color: "blue", gradient: "from-blue-500 to-blue-600" },
           { label: "Total Citizens", value: stats.total_citizens || 0, valueType: "number", icon: CheckCircle2, color: "green", gradient: "from-green-500 to-emerald-600" },
@@ -730,7 +890,7 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
             key={stat.label}
             onMouseEnter={() => setHoveredCard(stat.label)}
             onMouseLeave={() => setHoveredCard(null)}
-            className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-background via-card/80 to-secondary/30 p-6 shadow-xl backdrop-blur-sm border border-border/50 transition-all duration-500 hover:scale-105 hover:shadow-2xl animate-fade-in-up ${
+            className={`relative overflow-hidden rounded-2xl md:rounded-3xl bg-gradient-to-br from-background via-card/80 to-secondary/30 p-4 md:p-6 shadow-xl backdrop-blur-sm border border-border/50 transition-all duration-500 hover:scale-105 hover:shadow-2xl animate-fade-in-up ${
               hoveredCard === stat.label ? "ring-2 ring-primary/50" : ""
             }`}
             style={{ animationDelay: `${index * 100}ms` }}
@@ -739,14 +899,14 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-chart-2/5 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
             
             <div className="relative z-10 flex flex-col">
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg transform transition-transform duration-300 ${hoveredCard === stat.label ? "scale-110 rotate-3" : ""}`}>
-                  <stat.icon className="w-6 h-6 text-white" />
+              <div className="flex items-start justify-between mb-3 md:mb-4">
+                <div className={`p-2 md:p-3 rounded-xl md:rounded-2xl bg-gradient-to-br ${stat.gradient} shadow-lg transform transition-transform duration-300 ${hoveredCard === stat.label ? "scale-110 rotate-3" : ""}`}>
+                  <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                 </div>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground mb-2 font-medium">{stat.label}</p>
-                <p className="text-4xl font-bold text-foreground mb-1 transition-all duration-300">{stat.value}</p>
+                <p className="text-xs md:text-sm text-muted-foreground mb-1 md:mb-2 font-medium">{stat.label}</p>
+                <p className="text-2xl md:text-4xl font-bold text-foreground mb-1 transition-all duration-300">{stat.value}</p>
                 <p className="text-xs text-muted-foreground">Real-time data</p>
               </div>
             </div>
@@ -760,7 +920,7 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
       </div>
 
       {/* Radial Progress Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
         {[
           { label: "Open Issues", value: openPercentage, total: 100, color: "text-red-500", strokeColor: "#ef4444", strokeColorEnd: "#f43f5e", count: stats.open_issues || 0 },
           { label: "In Progress", value: inProgressPercentage, total: 100, color: "text-blue-500", strokeColor: "#3b82f6", strokeColorEnd: "#4f46e5", count: stats.in_progress_issues || 0 },
@@ -769,11 +929,11 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
         ].map((item, index) => (
           <div
             key={item.label}
-            className="relative rounded-3xl bg-gradient-to-br from-card/90 via-background/50 to-secondary/20 p-6 shadow-xl border border-border/50 backdrop-blur-sm hover:scale-105 transition-all duration-500 animate-fade-in-up"
+            className="relative rounded-2xl md:rounded-3xl bg-gradient-to-br from-card/90 via-background/50 to-secondary/20 p-4 md:p-6 shadow-xl border border-border/50 backdrop-blur-sm hover:scale-105 transition-all duration-500 animate-fade-in-up"
             style={{ animationDelay: `${index * 150}ms` }}
           >
             <div className="flex flex-col items-center">
-              <div className="relative w-32 h-32 mb-4">
+              <div className="relative w-24 h-24 md:w-32 md:h-32 mb-3 md:mb-4">
                 {/* Background Circle */}
                 <svg className="w-full h-full transform -rotate-90">
                   <defs>
@@ -783,33 +943,33 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
                     </linearGradient>
                   </defs>
                   <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
+                    cx="50%"
+                    cy="50%"
+                    r="42%"
                     stroke="currentColor"
-                    strokeWidth="12"
+                    strokeWidth="10"
                     fill="none"
                     className="text-muted/30"
                   />
                   {/* Animated Progress Circle */}
                   <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
+                    cx="50%"
+                    cy="50%"
+                    r="42%"
                     stroke={`url(#radial-gradient-${index})`}
-                    strokeWidth="12"
+                    strokeWidth="10"
                     fill="none"
                     strokeLinecap="round"
-                    strokeDasharray={`${(item.value / item.total) * 351.86} 351.86`}
+                    strokeDasharray={`${(item.value / item.total) * 264} 264`}
                     className="transition-all duration-1000 ease-out drop-shadow-lg"
                   />
                 </svg>
                 {/* Center Value */}
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className={`text-3xl font-bold ${item.color}`}>{item.value}%</span>
+                  <span className={`text-xl md:text-3xl font-bold ${item.color}`}>{item.value}%</span>
                 </div>
               </div>
-              <p className="text-sm font-semibold text-foreground text-center">{item.label}</p>
+              <p className="text-xs md:text-sm font-semibold text-foreground text-center">{item.label}</p>
               <p className="text-xs text-muted-foreground mt-1">{item.count} issues</p>
             </div>
           </div>
@@ -817,21 +977,21 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Issues by Category - Bar Chart */}
-        <Card className="p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-primary to-chart-2">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+        <Card className="p-4 md:p-8 overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-6">
+            <h3 className="text-lg md:text-xl font-bold text-foreground flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-gradient-to-br from-primary to-chart-2">
+                <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                 </svg>
               </div>
-              Issues by Category
+              <span className="text-base md:text-xl">Issues by Category</span>
             </h3>
           </div>
           {categoryChartData.length > 0 ? (
-            <div className="space-y-5">
+            <div className="space-y-3 md:space-y-5">
               {(() => {
                 const categoryColors: Record<string, { bg: string; text: string }> = {
                   pothole: { bg: "bg-orange-500", text: "text-orange-500" },
@@ -848,18 +1008,18 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
                   const colors = categoryColors[category.category.toLowerCase()] || categoryColors.other;
                   
                   return (
-                    <div key={category.category} className="space-y-3 group animate-fade-in-up hover:scale-[1.02] transition-transform duration-300" style={{ animationDelay: `${index * 100}ms` }}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-4 h-4 rounded-full ${colors.bg} animate-pulse`}></div>
-                          <span className="text-sm font-semibold text-foreground capitalize">{category.category}</span>
+                    <div key={category.category} className="space-y-2 md:space-y-3 group animate-fade-in-up hover:scale-[1.02] transition-transform duration-300" style={{ animationDelay: `${index * 100}ms` }}>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                          <div className={`w-3 h-3 md:w-4 md:h-4 rounded-full ${colors.bg} animate-pulse flex-shrink-0`}></div>
+                          <span className="text-xs md:text-sm font-semibold text-foreground capitalize truncate">{category.category}</span>
                         </div>
-                        <div className="flex items-center gap-6">
-                          <span className="text-sm text-muted-foreground font-medium">{category.count} issues</span>
-                          <span className={`text-base font-bold ${colors.text} w-14 text-right`}>{percentage}%</span>
+                        <div className="flex items-center gap-2 md:gap-6 flex-shrink-0">
+                          <span className="text-xs md:text-sm text-muted-foreground font-medium whitespace-nowrap">{category.count}</span>
+                          <span className={`text-sm md:text-base font-bold ${colors.text} w-10 md:w-14 text-right`}>{percentage}%</span>
                         </div>
                       </div>
-                      <div className="relative w-full h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
+                      <div className="relative w-full h-2 md:h-3 bg-muted/50 rounded-full overflow-hidden shadow-inner">
                         <div 
                           className={`absolute h-full ${colors.bg} rounded-full transition-all duration-1000 ease-out shadow-lg`}
                           style={{ 
@@ -886,19 +1046,19 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
         </Card>
 
         {/* Status Breakdown - Pie Chart */}
-        <Card className="p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-chart-3 to-chart-4">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <Card className="p-4 md:p-8 overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-6">
+            <h3 className="text-lg md:text-xl font-bold text-foreground flex items-center gap-2 md:gap-3">
+              <div className="p-1.5 md:p-2 rounded-lg md:rounded-xl bg-gradient-to-br from-chart-3 to-chart-4">
+                <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
-              Status Breakdown
+              <span className="text-base md:text-xl">Status Breakdown</span>
             </h3>
           </div>
           {statusChartData.length > 0 ? (
-            <ChartContainer config={statusChartConfig} className="h-[400px]">
+            <ChartContainer config={statusChartConfig} className="h-[300px] md:h-[400px]">
               <PieChart>
                 <ChartTooltip
                   cursor={false}
@@ -931,11 +1091,11 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
       </div>
 
       {/* Citizen Feedback - Coming Soon */}
-      <div className="relative rounded-3xl bg-gradient-to-br from-card/90 via-background/50 to-secondary/20 p-8 shadow-xl border border-border/50 backdrop-blur-sm overflow-hidden">
+      <div className="relative rounded-2xl md:rounded-3xl bg-gradient-to-br from-card/90 via-background/50 to-secondary/20 p-4 md:p-8 shadow-xl border border-border/50 backdrop-blur-sm overflow-hidden">
         {/* Blurred Content */}
         <div className="blur-sm pointer-events-none select-none">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold text-foreground flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-6">
+            <h3 className="text-lg md:text-xl font-bold text-foreground flex items-center gap-2 md:gap-3">
               <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600">
                 <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd" />
@@ -1031,18 +1191,18 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
       </div>
 
       {/* Download Reports Section */}
-      <Card className="p-8 bg-gradient-to-r from-primary to-chart-2 text-white hover:shadow-xl transition-all duration-300">
-        <div className="flex items-center justify-between">
+      <Card className="p-4 md:p-8 bg-gradient-to-r from-primary to-chart-2 text-white hover:shadow-xl transition-all duration-300 overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h3 className="text-2xl font-bold mb-2">Download Detailed Reports</h3>
-            <p className="text-white/80">Export comprehensive analytics data in CSV or PDF format</p>
+            <h3 className="text-xl md:text-2xl font-bold mb-2">Download Detailed Reports</h3>
+            <p className="text-sm md:text-base text-white/80">Export comprehensive analytics data in CSV or PDF format</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-2 md:gap-3 w-full sm:w-auto">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span>
-                    <Button disabled variant="secondary" className="bg-white/60 text-primary/60 cursor-not-allowed">
+                  <span className="flex-1 sm:flex-initial">
+                    <Button disabled variant="secondary" className="w-full sm:w-auto bg-white/60 text-primary/60 cursor-not-allowed text-sm">
                       Export CSV
                     </Button>
                   </span>
@@ -1055,8 +1215,8 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span>
-                    <Button disabled variant="secondary" className="bg-white/40 text-white/60 cursor-not-allowed backdrop-blur-sm">
+                  <span className="flex-1 sm:flex-initial">
+                    <Button disabled variant="secondary" className="w-full sm:w-auto bg-white/40 text-white/60 cursor-not-allowed backdrop-blur-sm text-sm">
                       Export PDF
                     </Button>
                   </span>

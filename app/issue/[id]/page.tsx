@@ -193,7 +193,7 @@ export default function IssueDetailsPage() {
           <div className="bg-card rounded-2xl shadow-lg overflow-hidden border">
             {/* Issue Image */}
             {issue.image_url && (
-              <div className="relative h-96 w-full bg-muted">
+              <div className="relative h-64 md:h-96 w-full bg-muted">
                 <Image
                   src={getImageUrl(issue.image_url)}
                   alt="Issue"
@@ -205,7 +205,7 @@ export default function IssueDetailsPage() {
               </div>
             )}
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 md:p-6 space-y-6">
               {/* Badges */}
               <div className="flex flex-wrap gap-2">
                 <Badge className={`${getCategoryColor(issue.category)} border font-medium`}>
@@ -218,10 +218,10 @@ export default function IssueDetailsPage() {
 
               {/* Description */}
               <div>
-                <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
+                <h1 className="text-2xl md:text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-chart-2 bg-clip-text text-transparent">
                   Issue Details
                 </h1>
-                <p className="text-lg text-foreground leading-relaxed">
+                <p className="text-base md:text-lg text-foreground leading-relaxed">
                   {issue.description}
                 </p>
               </div>
@@ -294,7 +294,7 @@ export default function IssueDetailsPage() {
               {/* Verify Button */}
               {canVerify && (
                 <div className="p-4 bg-green-500/5 border border-green-500/20 rounded-xl">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                       <p className="font-semibold text-foreground mb-1">Verify this resolution</p>
                       <p className="text-sm text-muted-foreground">
@@ -304,7 +304,7 @@ export default function IssueDetailsPage() {
                     <Button
                       onClick={handleVerify}
                       disabled={verifyMutation.status === 'pending'}
-                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white gap-2"
+                      className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white gap-2"
                     >
                       {verifyMutation.status === 'pending' ? (
                         <>

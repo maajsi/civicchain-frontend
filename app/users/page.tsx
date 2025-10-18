@@ -355,8 +355,8 @@ export default function UsersPage() {
           </div>
         </div>
 
-        <div className="animate-fade-in-up animation-delay-200 flex items-center gap-3">
-          <div className="flex-1">
+        <div className="animate-fade-in-up animation-delay-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex-1 w-full">
             <LocationSearchInput
               onLocationSelect={(lat, lng, displayName) => {
                 setSearchLocation({ lat, lng, displayName });
@@ -369,14 +369,16 @@ export default function UsersPage() {
               currentLocation={searchLocation?.displayName || currentAddress}
             />
           </div>
-          <AdvancedFilters
-            selectedCategories={selectedTypes}
-            onCategoriesChange={setSelectedTypes}
-            selectedStatuses={selectedStatuses}
-            onStatusesChange={setSelectedStatuses}
-            radius={radius}
-            onRadiusChange={setRadius}
-          />
+          <div className="w-full sm:w-auto">
+            <AdvancedFilters
+              selectedCategories={selectedTypes}
+              onCategoriesChange={setSelectedTypes}
+              selectedStatuses={selectedStatuses}
+              onStatusesChange={setSelectedStatuses}
+              radius={radius}
+              onRadiusChange={setRadius}
+            />
+          </div>
         </div>
 
         {/* Active Filter Badges */}
