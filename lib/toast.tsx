@@ -12,7 +12,7 @@ export function showTxToast(message: string, txHash?: string) {
   if (txHash) {
     const short = txHash.length > 20 ? `${txHash.substring(0, 20)}...` : txHash;
     const url = `https://explorer.solana.com/tx/${txHash}?cluster=devnet`;
-    const node = (
+    const node: React.ReactNode = (
       <span className="flex flex-col">
         <span>{message}</span>
         <a
@@ -25,7 +25,7 @@ export function showTxToast(message: string, txHash?: string) {
         </a>
       </span>
     );
-    toast.success(node as any);
+    toast.success(node);
   } else {
     toast.success(message);
   }
