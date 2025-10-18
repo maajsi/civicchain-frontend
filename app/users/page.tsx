@@ -189,26 +189,11 @@ export default function UsersPage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
       console.log("Upvote response data:", data);
-      
-      // Check multiple possible response structures
       const txHash = data?.blockchain_tx_hash || data?.issue?.blockchain_tx_hash || data?.transaction_hash;
-      
-      const message = txHash 
-        ? (
-            <span>
-              Upvoted successfully! 🎉 <br />
-              <a
-                href={`https://explorer.solana.com/tx/${txHash}?cluster=devnet`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline text-blue-600 hover:text-blue-800"
-              >
-                View on Solana Explorer →
-              </a>
-            </span>
-          )
-        : "Upvoted successfully!";
-      toast.success(message);
+      let explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
+      toast.success("Upvoted successfully! 🎉", {
+        description: explorerLink ? `View on Solana Explorer: ${explorerLink}` : undefined,
+      });
     },
     onError: () => {
       toast.error("Failed to upvote");
@@ -225,26 +210,11 @@ export default function UsersPage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
       console.log("Downvote response data:", data);
-      
-      // Check multiple possible response structures
       const txHash = data?.blockchain_tx_hash || data?.issue?.blockchain_tx_hash || data?.transaction_hash;
-      
-      const message = txHash 
-        ? (
-            <span>
-              Downvoted! 👎 <br />
-              <a
-                href={`https://explorer.solana.com/tx/${txHash}?cluster=devnet`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline text-blue-600 hover:text-blue-800"
-              >
-                View on Solana Explorer →
-              </a>
-            </span>
-          )
-        : "Downvoted";
-      toast.success(message);
+      let explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
+      toast.success("Downvoted! 👎", {
+        description: explorerLink ? `View on Solana Explorer: ${explorerLink}` : undefined,
+      });
     },
     onError: () => {
       toast.error("Failed to downvote");

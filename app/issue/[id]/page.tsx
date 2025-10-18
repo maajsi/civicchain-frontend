@@ -67,32 +67,19 @@ export default function IssueDetailsPage() {
         throw new Error("User not authenticated");
       }
       const response = await clientApi.post(`/issue/${issueId}/verify`, { 
-        user_id: currentUserId 
+        user_id: currentUserId,
+        verified: true
       });
       return response.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["issue", issueId] });
       console.log("Verify response data:", data);
-      
       const txHash = data?.blockchain_tx_hash || data?.transaction_hash;
-      
-      const message = txHash 
-        ? (
-            <span>
-              Issue verified successfully! ✓ <br />
-              <a
-                href={`https://explorer.solana.com/tx/${txHash}?cluster=devnet`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline text-blue-600 hover:text-blue-800"
-              >
-                View on Solana Explorer →
-              </a>
-            </span>
-          )
-        : "Issue verified successfully!";
-      toast.success(message);
+      let explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
+      toast.success("Issue verified successfully! ✓", {
+        description: explorerLink ? `View on Solana Explorer: ${explorerLink}` : undefined,
+      });
     },
     onError: (error: unknown) => {
       let errorMsg = "Failed to verify issue";
