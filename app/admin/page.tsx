@@ -951,18 +951,20 @@ function AnalyticsTab({ stats, categoryBreakdown }: { stats: Stats; categoryBrea
                     fill="none"
                     className="text-muted/30"
                   />
-                  {/* Animated Progress Circle */}
-                  <circle
-                    cx="50%"
-                    cy="50%"
-                    r="42%"
-                    stroke={`url(#radial-gradient-${index})`}
-                    strokeWidth="10"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeDasharray={`${(item.value / item.total) * 264} 264`}
-                    className="transition-all duration-1000 ease-out drop-shadow-lg"
-                  />
+                  {/* Only render progress arc if value > 0 */}
+                  {item.value > 0 && (
+                    <circle
+                      cx="50%"
+                      cy="50%"
+                      r="42%"
+                      stroke={`url(#radial-gradient-${index})`}
+                      strokeWidth="10"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeDasharray={`${(item.value / item.total) * 264} 264`}
+                      className="transition-all duration-1000 ease-out drop-shadow-lg"
+                    />
+                  )}
                 </svg>
                 {/* Center Value */}
                 <div className="absolute inset-0 flex items-center justify-center">
