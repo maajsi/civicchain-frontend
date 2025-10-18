@@ -190,7 +190,7 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
       console.log("Upvote response data:", data);
       const txHash = data?.blockchain_tx_hash || data?.issue?.blockchain_tx_hash || data?.transaction_hash;
-      let explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
+      const explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
       toast.success("Upvoted successfully! 🎉", {
         description: explorerLink ? `View on Solana Explorer: ${explorerLink}` : undefined,
       });
@@ -211,7 +211,7 @@ export default function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ["issues"] });
       console.log("Downvote response data:", data);
       const txHash = data?.blockchain_tx_hash || data?.issue?.blockchain_tx_hash || data?.transaction_hash;
-      let explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
+      const explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
       toast.success("Downvoted! 👎", {
         description: explorerLink ? `View on Solana Explorer: ${explorerLink}` : undefined,
       });

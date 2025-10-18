@@ -76,7 +76,7 @@ export default function IssueDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ["issue", issueId] });
       console.log("Verify response data:", data);
       const txHash = data?.blockchain_tx_hash || data?.transaction_hash;
-      let explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
+      const explorerLink = txHash ? `https://explorer.solana.com/tx/${txHash}?cluster=devnet` : null;
       toast.success("Issue verified successfully! ✓", {
         description: explorerLink ? `View on Solana Explorer: ${explorerLink}` : undefined,
       });
