@@ -10,7 +10,7 @@ export async function POST(
   try {
     const { id: issueId } = await context.params;
     const body = await request.json();
-    const { user_id } = body;
+    const { user_id, verified } = body;
 
     if (!user_id) {
       return NextResponse.json(
@@ -24,7 +24,7 @@ export async function POST(
 
     const response = await axios.post(
       `${API_BASE_URL}/issue/${issueId}/verify`,
-      { user_id },
+      { user_id, verified },
       {
         headers: {
           "Content-Type": "application/json",
